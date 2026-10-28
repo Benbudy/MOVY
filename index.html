@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#12151c">
+<title>Ma dvdthèque</title>
+<style>
+:root{--bg:#f1f2f5;--card:#fff;--ink:#1a1f2b;--mute:#667085;--line:#d9dde4;--acc:#1f6fd1;--dvd:#d9480f;--br:#1971c2;--uhd:#2f9e44;--grave:#9c36b5;--mkv:#6b7280;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#12151c;--card:#1d222d;--ink:#eef1f6;--mute:#98a2b3;--line:#313847;--acc:#5aa2f5;--dvd:#ff8a4c;--br:#5aa2f5;--uhd:#5fd37a;--grave:#da77f2;--mkv:#adb5bd;color-scheme:dark}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;padding:env(safe-area-inset-top) 0 0}
+main{max-width:900px;margin:0 auto;padding:16px 12px calc(96px + env(safe-area-inset-bottom))}
+h1{font:700 1.6rem/1.1 "Iowan Old Style",Georgia,serif;margin:0 0 2px}
+.sub{color:var(--mute);margin:0 0 14px;font-size:.9rem}
+input,select,button{font:inherit;color:var(--ink)}
+input,select{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:11px 12px;min-width:0;width:100%}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.btn{background:var(--acc);color:#fff;border:0;border-radius:10px;padding:11px 16px;font-weight:600;cursor:pointer}
+.btn.ghost{background:none;color:var(--ink);border:1px solid var(--line)}
+.btn.danger{background:none;color:#e03131;border:1px solid var(--line)}
+.tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:10px;padding-bottom:2px}
+.tab{flex:none;border:1px solid var(--line);background:var(--card);padding:7px 14px;border-radius:99px;cursor:pointer;font-weight:600;font-size:.85rem}
+.tab[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.filters{display:grid;grid-template-columns:2fr 1fr;gap:8px;margin-bottom:10px}
+.stats{color:var(--mute);font-size:.82rem;margin-bottom:10px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media (min-width:600px){.grid{grid-template-columns:repeat(5,1fr)}}
+@media (min-width:860px){.grid{grid-template-columns:repeat(6,1fr)}}
+.disc{position:relative;border:0;padding:0;background:none;cursor:pointer;text-align:left}
+.cover{aspect-ratio:2/3;border-radius:6px;overflow:hidden;background:var(--line);display:flex;align-items:center;justify-content:center;text-align:center;padding:6px;font:600 .75rem "Iowan Old Style",Georgia,serif;color:var(--mute);box-shadow:0 1px 3px rgba(0,0,0,.25);border-top:4px solid var(--c)}
+.cover img{width:100%;height:100%;object-fit:cover;display:block}
+.disc.seen .cover{opacity:.55}
+.tag{position:absolute;left:5px;bottom:5px;background:var(--c);color:#fff;font:700 .62rem system-ui;padding:2px 6px;border-radius:4px}
+.dvd{--c:var(--dvd)}.br{--c:var(--br)}.uhd{--c:var(--uhd)}.grave{--c:var(--grave)}.mkv{--c:var(--mkv)}
+.empty{grid-column:1/-1;text-align:center;color:var(--mute);padding:40px 10px}
+.fab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));box-shadow:0 4px 14px rgba(0,0,0,.35);padding:14px 20px;border-radius:99px}
+dialog{width:min(94vw,520px);max-height:88vh;overflow:auto;background:var(--card);color:var(--ink);border:0;border-radius:14px;padding:16px}
+dialog::backdrop{background:rgba(0,0,0,.55)}
+dialog h2{margin:0 0 10px;font:700 1.15rem "Iowan Old Style",Georgia,serif}
+.bar{display:flex;gap:8px;margin-bottom:8px}
+.bar select{width:auto;flex:none}
+.res{display:grid;gap:8px;margin-top:10px}
+.r{display:flex;gap:10px;align-items:center;border-top:1px solid var(--line);padding-top:8px;font-size:.9rem}
+.r img,.r .ph{width:46px;height:69px;object-fit:cover;border-radius:4px;background:var(--line);flex:none}
+.r .info{flex:1;min-width:0}
+.m{color:var(--mute);font-size:.8rem}
+.sec{border-top:1px solid var(--line);margin-top:14px;padding-top:12px}
+.sec h3{margin:0 0 8px;font-size:.95rem}
+.stack{display:grid;gap:8px}
+.stars button{background:none;border:0;cursor:pointer;font-size:1.6rem;padding:0 2px;color:var(--line)}
+.stars button.on{color:#f0b429}
+.big{display:flex;gap:12px}.big .cover{width:110px;flex:none}
+.close{float:right}
+.note{color:var(--mute);font-size:.82rem}
+.note a{color:var(--acc)}
+details{margin-top:24px}summary{cursor:pointer;font-weight:600}
+#vid{width:100%;aspect-ratio:4/3;object-fit:cover;background:#000;border-radius:10px;margin:8px 0}
+.st{font-size:.85rem;margin:8px 0}
+</style>
+</head>
+<body>
+<main>
+<h1>Ma dvdthèque</h1>
+<p class="sub">Mes DVD, Blu-ray et 4K, avec leurs jaquettes.</p>
+<div class="tabs" id="tabs"></div>
+<div class="filters">
+  <input id="q" type="search" placeholder="Filtrer mes disques…" aria-label="Filtrer">
+  <select id="seen" aria-label="Statut"><option value="">Tous</option><option value="no">À voir</option><option value="yes">Déjà vus</option></select>
+</div>
+<div class="stats" id="stats"></div>
+<div class="grid" id="grid"></div>
+
+<details>
+  <summary>Réglages, synchronisation et sauvegarde</summary>
+  <div class="sec">
+    <h3>Clé TMDB (affiches des films)</h3>
+    <p class="note">Crée une clé gratuite sur themoviedb.org (Paramètres, API) et colle la clé v3 ici.</p>
+    <div class="bar"><input id="key" type="password" placeholder="Clé API TMDB (v3)" autocomplete="off"><button class="btn" id="saveKey">Enregistrer</button></div>
+  </div>
+  <div class="sec">
+    <h3>Compléter les jaquettes</h3>
+    <p class="note">Cherche l’affiche des disques qui n’en ont pas, via TMDB. Les jaquettes déjà présentes ne sont jamais modifiées. Pour 700 disques, compte quelques minutes : laisse la page ouverte.</p>
+    <div class="bar"><button class="btn" id="fillBtn">Compléter les jaquettes</button><button class="btn ghost" id="fillStop" hidden>Arrêter</button></div>
+    <div class="st note" id="fillSt"></div>
+  </div>
+  <div class="sec">
+    <h3>Synchronisation entre appareils</h3>
+    <p class="note">Ta liste est stockée dans un Gist privé de ton compte GitHub. <a href="https://github.com/settings/tokens/new?scopes=gist&description=dvdtheque" target="_blank" rel="noopener">Crée un jeton avec la seule autorisation « gist »</a>, puis colle le même jeton sur chaque appareil.</p>
+    <div class="bar"><input id="tok" type="password" placeholder="Jeton GitHub" autocomplete="off"><button class="btn" id="syncOn">Activer</button></div>
+    <div class="bar"><button class="btn ghost" id="syncNow">Synchroniser maintenant</button><button class="btn ghost" id="syncOff">Désactiver</button></div>
+    <div class="st note" id="syncSt"></div>
+  </div>
+  <div class="sec">
+    <h3>Sauvegarde</h3>
+    <div class="bar"><button class="btn ghost" id="exp">Exporter (JSON)</button><button class="btn ghost" id="impBtn">Importer</button><input type="file" id="imp" accept="application/json" hidden></div>
+  </div>
+</details>
+</main>
+
+<button class="btn fab" id="fab">＋ Ajouter un disque</button>
+
+<dialog id="addD">
+  <button class="btn ghost close" id="addX">Fermer</button>
+  <h2>Ajouter un disque</h2>
+  <button class="btn" id="scanBtn" style="width:100%;margin-bottom:8px">Scanner le code-barre</button>
+  <div class="bar"><select id="fmt" aria-label="Format"><option value="dvd">DVD</option><option value="br">Blu-ray</option><option value="uhd">4K UHD</option><option value="grave">Gravé</option><option value="mkv">MKV</option></select><input id="sq" type="search" placeholder="Ou tape le titre du film…" aria-label="Titre"></div>
+  <button class="btn" id="go" style="width:100%">Chercher la jaquette</button>
+  <div class="res" id="res"></div>
+  <div class="sec">
+    <h3>Pas trouvé ? Saisie manuelle</h3>
+    <div class="stack">
+      <input id="mt" placeholder="Titre" maxlength="120">
+      <input id="my" type="number" placeholder="Année (facultatif)" min="1888" max="2100">
+      <label class="note">Photo de la jaquette (facultatif)<input id="mp" type="file" accept="image/*" capture="environment"></label>
+      <button class="btn" id="mAdd">Ajouter ce disque</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="scanD">
+  <button class="btn ghost close" id="scanX">Annuler</button>
+  <h2>Scanner un code-barre</h2>
+  <video id="vid" playsinline muted></video>
+  <div class="note" id="scanMsg"></div>
+  <div class="bar" style="margin-top:10px"><input id="code" inputmode="numeric" placeholder="Ou saisis les chiffres du code" aria-label="Code-barre"><button class="btn" id="codeGo">OK</button></div>
+</dialog>
+
+<dialog id="detD"></dialog>
+
+<script>
+const $=id=>document.getElementById(id);
+const FMT={dvd:"DVD",br:"Blu-ray",uhd:"4K UHD",grave:"Gravé",mkv:"MKV"};
+const KEY="dvdtheque-v2",OLD="dvdtheque-v1",TK="tmdb-key",SK="sync-cfg";
+let items=[],del={},filter="tous",cfg={},syncing=false,timer=null;
+try{
+  const s=JSON.parse(localStorage.getItem(KEY)||"null");
+  if(s&&Array.isArray(s.items)){items=s.items;del=s.del||{}}
+  else{const o=JSON.parse(localStorage.getItem(OLD)||"[]");if(Array.isArray(o))items=o.map(i=>({...i,u:i.u||1}))}
+}catch(e){}
+try{cfg=JSON.parse(localStorage.getItem(SK)||"{}")}catch(e){cfg={}}
+function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify({items,del}))}catch(e){alert("Stockage plein. Exporte ta bibliothèque en JSON pour la sauvegarder.")}}
+function save(i){if(i)i.u=Date.now();saveLocal();queueSync()}
+function tmdbKey(){try{return localStorage.getItem(TK)||""}catch(e){return ""}}
+const nid=()=>Date.now()+"-"+Math.random().toString(36).slice(2,6);
+$("key").value=tmdbKey();
+$("saveKey").onclick=()=>{try{localStorage.setItem(TK,$("key").value.trim())}catch(e){}$("saveKey").textContent="Enregistrée";setTimeout(()=>$("saveKey").textContent="Enregistrer",1500)};
+
+function img(src,alt){const i=document.createElement("img");i.src=src;i.alt=alt;i.loading="lazy";return i}
+function thumb(file){return new Promise((ok,ko)=>{const r=new FileReader();r.onerror=ko;r.onload=()=>{const im=new Image();im.onerror=ko;im.onload=()=>{const w=Math.min(320,im.width),h=Math.round(im.height*w/im.width),c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(im,0,0,w,h);ok(c.toDataURL("image/jpeg",.7))};im.src=r.result};r.readAsDataURL(file)})}
+
+/* ---------- Recherche TMDB ---------- */
+async function searchFilms(q){
+  const k=tmdbKey();
+  if(!k)throw new Error("Ajoute ta clé TMDB dans « Réglages », en bas de la page.");
+  const r=await fetch("https://api.themoviedb.org/3/search/movie?include_adult=false&language=fr-FR&query="+encodeURIComponent(q)+"&api_key="+encodeURIComponent(k));
+  if(r.status===401)throw new Error("Clé TMDB refusée. Vérifie qu’il s’agit de la clé v3.");
+  if(!r.ok)throw new Error("TMDB est indisponible. Réessaie dans un instant.");
+  const j=await r.json();
+  return (j.results||[]).slice(0,8).map(f=>({title:f.title,year:(f.release_date||"").slice(0,4),cover:f.poster_path?"https://image.tmdb.org/t/p/w342"+f.poster_path:"",overview:f.overview||""}));
+}
+async function go(){
+  const q=$("sq").value.trim(),out=$("res");if(!q)return;
+  out.textContent="Recherche en cours…";
+  try{
+    const list=await searchFilms(q);out.textContent="";
+    if(!list.length){out.textContent="Aucun résultat. Essaie un autre titre ou la saisie manuelle.";return}
+    list.forEach(x=>{
+      const r=document.createElement("div");r.className="r";
+      r.appendChild(x.cover?img(x.cover,""):Object.assign(document.createElement("div"),{className:"ph"}));
+      const info=document.createElement("div");info.className="info";
+      const b=document.createElement("strong");b.textContent=x.title;
+      const m=document.createElement("div");m.className="m";m.textContent=x.year;
+      info.append(b,m);
+      const add=document.createElement("button");add.className="btn";add.textContent="Ajouter";
+      add.onclick=()=>{const it={id:nid(),title:x.title,year:x.year,cover:x.cover,overview:x.overview,format:$("fmt").value,seen:false,rating:0};items.unshift(it);save(it);add.textContent="Ajouté";add.disabled=true;render()};
+      r.append(info,add);out.appendChild(r);
+    });
+  }catch(e){out.textContent=e.message||"La recherche a échoué."}
+}
+$("go").onclick=go;
+$("sq").addEventListener("keydown",e=>{if(e.key==="Enter")go()});
+$("fab").onclick=()=>$("addD").showModal();
+$("addX").onclick=()=>$("addD").close();
+$("mAdd").onclick=async()=>{
+  const t=$("mt").value.trim();if(!t){$("mt").focus();return}
+  let cover="";const f=$("mp").files[0];
+  if(f){try{cover=await thumb(f)}catch(e){alert("Photo illisible. Le disque sera ajouté sans jaquette.")}}
+  const it={id:nid(),title:t,year:$("my").value,cover,overview:"",format:$("fmt").value,seen:false,rating:0};
+  items.unshift(it);save(it);
+  $("mt").value="";$("my").value="";$("mp").value="";$("addD").close();render();
+};
+
+/* ---------- Scan code-barre ---------- */
+let stream=null,scanning=false,zx=null;
+function loadZX(){return window.ZXing?Promise.resolve():new Promise((ok,ko)=>{const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js";s.onload=ok;s.onerror=ko;document.head.appendChild(s)})}
+async function startScan(){
+  $("scanD").showModal();$("scanMsg").textContent="Cadre le code-barre au dos du boîtier.";
+  const v=$("vid");scanning=true;
+  try{
+    if("BarcodeDetector" in window){
+      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
+      v.srcObject=stream;await v.play();
+      const det=new BarcodeDetector({formats:["ean_13","ean_8","upc_a"]});
+      const loop=async()=>{if(!scanning)return;try{const c=await det.detect(v);if(c.length){onCode(c[0].rawValue);return}}catch(e){}setTimeout(loop,250)};
+      loop();
+    }else{
+      await loadZX();
+      zx=new ZXing.BrowserMultiFormatReader();
+      await zx.decodeFromConstraints({video:{facingMode:"environment"}},v,res=>{if(res&&scanning)onCode(res.getText())});
+    }
+  }catch(e){$("scanMsg").textContent="Caméra inaccessible. Autorise-la dans le navigateur ou saisis les chiffres du code ci-dessous."}
+}
+function stopScan(){scanning=false;if(zx){try{zx.reset()}catch(e){}zx=null}if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}$("vid").srcObject=null}
+$("scanD").addEventListener("close",stopScan);
+$("scanBtn").onclick=startScan;
+$("scanX").onclick=()=>$("scanD").close();
+$("codeGo").onclick=()=>{const c=$("code").value.replace(/\D/g,"");if(c.length>=8)onCode(c);else $("code").focus()};
+async function onCode(code){
+  stopScan();if($("scanD").open)$("scanD").close();
+  const out=$("res");out.textContent="Code "+code+" : recherche du produit…";
+  try{
+    const r=await fetch("https://api.upcitemdb.com/prod/trial/lookup?upc="+encodeURIComponent(code));
+    if(r.status===429){out.textContent="Limite de recherches par code atteinte pour aujourd’hui. Tape le titre à la main.";return}
+    const j=await r.json();const it=(j.items||[])[0];
+    if(!it||!it.title){out.textContent="Code "+code+" non reconnu. Tape le titre pour le chercher.";return}
+    const raw=it.title,low=raw.toLowerCase();
+    if(/4k|uhd/.test(low))$("fmt").value="uhd";else if(/blu-?ray/.test(low))$("fmt").value="br";else if(/dvd/.test(low))$("fmt").value="dvd";
+    $("sq").value=raw.replace(/\(.*?\)|\[.*?\]/g," ").replace(/blu-?ray|4k|uhd|ultra hd|dvd|steelbook|édition.*$/ig," ").replace(/\s+/g," ").trim();
+    go();
+  }catch(e){out.textContent="Recherche par code impossible. Tape le titre à la main."}
+}
+
+/* ---------- Fiche détail ---------- */
+function detail(i){
+  const d=$("detD");d.innerHTML="";
+  const x=document.createElement("button");x.className="btn ghost close";x.textContent="Fermer";x.onclick=()=>d.close();
+  const h=document.createElement("h2");h.textContent=i.title+(i.year?" ("+i.year+")":"");
+  const big=document.createElement("div");big.className="big";
+  const cv=document.createElement("div");cv.className="cover "+i.format;if(i.cover)cv.appendChild(img(i.cover,i.title));else cv.textContent=i.title;
+  const side=document.createElement("div");side.className="stack";side.style.flex="1";
+  const fs=document.createElement("select");Object.entries(FMT).forEach(([k,l])=>{const o=document.createElement("option");o.value=k;o.textContent=l;if(k===i.format)o.selected=true;fs.appendChild(o)});
+  fs.onchange=()=>{i.format=fs.value;save(i);render()};
+  const sb=document.createElement("button");sb.className="btn"+(i.seen?" ghost":"");sb.textContent=i.seen?"Marquer à voir":"Marquer comme vu";
+  sb.onclick=()=>{i.seen=!i.seen;save(i);render();detail(i)};
+  const st=document.createElement("div");st.className="stars";
+  for(let n=1;n<=5;n++){const s=document.createElement("button");s.textContent="★";s.setAttribute("aria-label",n+" sur 5");if(n<=(i.rating||0))s.className="on";s.onclick=()=>{i.rating=i.rating===n?0:n;save(i);render();detail(i)};st.appendChild(s)}
+  side.append(fs,sb,st);big.append(cv,side);
+  d.append(x,h,big);
+  if(i.overview){const p=document.createElement("p");p.className="note";p.textContent=i.overview;d.appendChild(p)}
+  const sec=document.createElement("div");sec.className="sec stack";
+  const lab=document.createElement("label");lab.className="note";lab.textContent="Remplacer la jaquette par une photo";
+  const fi=document.createElement("input");fi.type="file";fi.accept="image/*";fi.setAttribute("capture","environment");
+  fi.onchange=async()=>{if(fi.files[0]){try{i.cover=await thumb(fi.files[0]);save(i);render();detail(i)}catch(e){alert("Photo illisible.")}}};
+  lab.appendChild(fi);
+  const dl=document.createElement("button");dl.className="btn danger";dl.textContent="Supprimer ce disque";
+  dl.onclick=()=>{if(confirm("Supprimer « "+i.title+" » ?")){items=items.filter(z=>z.id!==i.id);del[i.id]=Date.now();save();d.close();render()}};
+  sec.append(lab,dl);d.appendChild(sec);
+  if(!d.open)d.showModal();
+}
+
+/* ---------- Affichage ---------- */
+function render(){
+  $("tabs").innerHTML="";
+  [["tous","Tout"],["dvd","DVD"],["br","Blu-ray"],["uhd","4K"],["grave","Gravés"],["mkv","MKV"]].forEach(([k,l])=>{
+    const b=document.createElement("button");b.className="tab";b.textContent=l;b.setAttribute("aria-pressed",filter===k);
+    b.onclick=()=>{filter=k;render()};$("tabs").appendChild(b);
+  });
+  const q=$("q").value.trim().toLowerCase(),sv=$("seen").value;
+  const shown=items.filter(i=>(filter==="tous"||i.format===filter)&&(!q||i.title.toLowerCase().includes(q))&&(!sv||(sv==="yes")===!!i.seen));
+  shown.sort((a,b)=>a.title.localeCompare(b.title,"fr"));
+  $("stats").textContent=shown.length+" disque"+(shown.length>1?"s":"")+(items.length!==shown.length?" sur "+items.length:"");
+  const g=$("grid");g.innerHTML="";
+  if(!shown.length){g.innerHTML='<div class="empty">'+(items.length?"Aucun disque ne correspond.":"Ta dvdthèque est vide. Appuie sur « Ajouter un disque » pour commencer.")+"</div>";return}
+  shown.forEach(i=>{
+    const b=document.createElement("button");b.className="disc "+i.format+(i.seen?" seen":"");b.setAttribute("aria-label",i.title+", "+FMT[i.format]);
+    const cv=document.createElement("div");cv.className="cover";
+    if(i.cover)cv.appendChild(img(i.cover,i.title));else cv.textContent=i.title;
+    const tag=document.createElement("span");tag.className="tag";tag.textContent=FMT[i.format];
+    b.append(cv,tag);b.onclick=()=>detail(i);g.appendChild(b);
+  });
+}
+$("q").addEventListener("input",render);$("seen").addEventListener("change",render);
+
+/* ---------- Synchronisation (Gist privé) ---------- */
+function setSt(t){$("syncSt").textContent=t}
+function gh(path,opt){return fetch("https://api.github.com"+path,Object.assign({},opt,{headers:{Authorization:"Bearer "+cfg.tok,Accept:"application/vnd.github+json","Content-Type":"application/json"}}))}
+async function findOrCreate(){
+  const r=await gh("/gists?per_page=100");
+  if(r.status===401)throw new Error("Jeton refusé par GitHub.");
+  if(!r.ok)throw new Error("GitHub est indisponible.");
+  const g=(await r.json()).find(x=>x.files&&x.files["dvdtheque.json"]);
+  if(g)return g.id;
+  const c=await gh("/gists",{method:"POST",body:JSON.stringify({description:"dvdtheque",public:false,files:{"dvdtheque.json":{content:JSON.stringify({items,del})}}})});
+  if(!c.ok)throw new Error("Création impossible. Le jeton doit avoir l’autorisation « gist ».");
+  return (await c.json()).id;
+}
+async function pull(){
+  const r=await gh("/gists/"+cfg.gid);if(!r.ok)throw new Error("Lecture impossible.");
+  const f=(await r.json()).files["dvdtheque.json"];
+  let txt=f.content;if(f.truncated)txt=await (await fetch(f.raw_url)).text();
+  return JSON.parse(txt||"{}");
+}
+function merge(rem){
+  const ri=Array.isArray(rem.items)?rem.items:[],rd=rem.del&&typeof rem.del==="object"?rem.del:{};
+  Object.entries(rd).forEach(([id,t])=>{if(!(del[id]>=t))del[id]=t});
+  const map=new Map(items.map(i=>[i.id,i]));
+  ri.forEach(x=>{if(!x||!x.id||!x.title)return;const l=map.get(x.id);if(!l||(x.u||0)>(l.u||0))map.set(x.id,x)});
+  items=[...map.values()].filter(i=>!(del[i.id]>(i.u||0)));
+}
+async function sync(){
+  if(!cfg.tok||!cfg.gid||syncing)return;
+  syncing=true;setSt("Synchronisation en cours…");
+  try{
+    merge(await pull());saveLocal();render();
+    const w=await gh("/gists/"+cfg.gid,{method:"PATCH",body:JSON.stringify({files:{"dvdtheque.json":{content:JSON.stringify({items,del})}}})});
+    if(!w.ok)throw new Error("Écriture impossible.");
+    setSt("Synchronisé à "+new Date().toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})+".");
+  }catch(e){setSt((e&&e.message)||"Échec de la synchronisation. Vérifie ta connexion.")}
+  syncing=false;
+}
+function queueSync(){if(!cfg.tok||!cfg.gid)return;clearTimeout(timer);timer=setTimeout(sync,1500)}
+$("syncOn").onclick=async()=>{
+  const t=$("tok").value.trim();if(!t){$("tok").focus();return}
+  cfg={tok:t};setSt("Connexion à GitHub…");
+  try{cfg.gid=await findOrCreate();localStorage.setItem(SK,JSON.stringify(cfg));$("tok").value="";await sync()}
+  catch(e){cfg={};setSt((e&&e.message)||"Activation impossible.")}
+};
+$("syncNow").onclick=sync;
+$("syncOff").onclick=()=>{cfg={};try{localStorage.removeItem(SK)}catch(e){}setSt("Synchronisation désactivée sur cet appareil. Tes disques restent ici.")};
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)sync()});
+if(cfg.tok&&cfg.gid){setSt("Synchronisation activée.");sync()}
+
+/* ---------- Compléter les jaquettes ---------- */
+let fillStop=false;
+const SER=/saison|season|int[ée]grale|complete series/i;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function cleanTitle(t){
+  return t.replace(/\(.*?\)|\[.*?\]/g," ")
+    .replace(/\s*[:\-–]?\s*(l['’]int[ée]grale.*|int[ée]grale.*|the complete series.*|saisons?\s*\d.*|season\s*\d.*|coffret.*|édition.*|collector.*)$/i," ")
+    .replace(/\s+/g," ").trim();
+}
+async function tmdbHit(path,q,retry){
+  const r=await fetch("https://api.themoviedb.org/3/search/"+path+"?include_adult=false&language=fr-FR&query="+encodeURIComponent(q)+"&api_key="+encodeURIComponent(tmdbKey()));
+  if(r.status===401)throw new Error("auth");
+  if(r.status===429&&!retry){await sleep(2500);return tmdbHit(path,q,true)}
+  if(!r.ok)return null;
+  return ((await r.json()).results||[]).find(x=>x.poster_path)||null;
+}
+async function fillCovers(){
+  const st=$("fillSt");
+  if(!tmdbKey()){st.textContent="Ajoute d’abord ta clé TMDB dans la section ci-dessus.";return}
+  const todo=items.filter(i=>!i.cover);
+  if(!todo.length){st.textContent="Tous tes disques ont déjà une jaquette.";return}
+  if(!confirm("Chercher la jaquette de "+todo.length+" disque"+(todo.length>1?"s":"")+" sans image ? Les jaquettes existantes ne seront pas modifiées.\n\nAttention : certaines affiches trouvées peuvent ne pas correspondre exactement. Tu pourras les remplacer par une photo dans la fiche du disque."))return;
+  fillStop=false;$("fillBtn").disabled=true;$("fillStop").hidden=false;
+  let n=0,ok=0,ko=0,err="";
+  try{
+    for(const i of todo){
+      if(fillStop)break;
+      n++;st.textContent="Recherche "+n+" / "+todo.length+" · "+ok+" trouvées";
+      const q=cleanTitle(i.title);let hit=null,tv=false;
+      if(q){
+        for(const p of (SER.test(i.title)?["tv","movie"]:["movie"])){hit=await tmdbHit(p,q);if(hit){tv=p==="tv";break}}
+      }
+      if(hit){
+        i.cover="https://image.tmdb.org/t/p/w342"+hit.poster_path;
+        i.year=i.year||((tv?hit.first_air_date:hit.release_date)||"").slice(0,4);
+        i.overview=i.overview||hit.overview||"";
+        i.auto=1;i.u=Date.now();ok++;
+      }else ko++;
+      if(n%20===0){saveLocal();render()}
+      await sleep(120);
+    }
+  }catch(e){err=e&&e.message==="auth"?"Clé TMDB refusée. Vérifie qu’il s’agit de la clé v3.":"Interrompu (connexion ou TMDB). Relance : les jaquettes déjà trouvées sont conservées."}
+  saveLocal();render();queueSync();
+  $("fillBtn").disabled=false;$("fillStop").hidden=true;
+  st.textContent=(err?err+" ":"")+(fillStop?"Arrêté. ":"Terminé. ")+ok+" jaquette"+(ok>1?"s":"")+" ajoutée"+(ok>1?"s":"")+", "+ko+" sans résultat (séries, coffrets ou titres rares : ajoute une photo dans leur fiche).";
+}
+$("fillBtn").onclick=fillCovers;
+$("fillStop").onclick=()=>{fillStop=true};
+
+/* ---------- Export / import ---------- */
+$("exp").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(items,null,2)],{type:"application/json"}));a.download="dvdtheque.json";a.click()};
+$("impBtn").onclick=()=>$("imp").click();
+$("imp").onchange=async e=>{
+  try{const d=JSON.parse(await e.target.files[0].text());
+    if(Array.isArray(d)){d.forEach(x=>{if(x&&x.title&&!items.some(z=>z.id===x.id))items.push({id:x.id||nid(),title:x.title,year:x.year||"",cover:x.cover||"",overview:x.overview||"",format:FMT[x.format]?x.format:"dvd",seen:!!x.seen||x.status==="termine",rating:x.rating||0,genres:x.genres||"",num:x.num||0,auto:x.auto||0,u:Date.now()})});save();render()}
+  }catch(err){alert("Fichier illisible.")}
+};
+render();
+</script>
+</body>
+</html>
