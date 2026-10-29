@@ -2,12 +2,13 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#f1f2f5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#12151c" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-title" content="MOVY">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icon-192.png">
@@ -16,20 +17,26 @@
 :root{--bg:#f1f2f5;--card:#fff;--ink:#1a1f2b;--mute:#667085;--line:#d9dde4;--acc:#1f6fd1;--dvd:#d9480f;--br:#1971c2;--uhd:#2f9e44;--grave:#9c36b5;--mkv:#6b7280;color-scheme:light}
 @media (prefers-color-scheme:dark){:root{--bg:#12151c;--card:#1d222d;--ink:#eef1f6;--mute:#98a2b3;--line:#313847;--acc:#5aa2f5;--dvd:#ff8a4c;--br:#5aa2f5;--uhd:#5fd37a;--grave:#da77f2;--mkv:#adb5bd;color-scheme:dark}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;padding:env(safe-area-inset-top) 0 0}
-main{max-width:900px;margin:0 auto;padding:16px 12px calc(96px + env(safe-area-inset-bottom))}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+main,#film{max-width:900px;margin:0 auto;padding:16px 12px calc(96px + env(safe-area-inset-bottom))}
+#film{padding-top:0}
 h1{font:700 1.6rem/1.1 "Iowan Old Style",Georgia,serif;margin:0 0 2px}
 .sub{color:var(--mute);margin:0 0 14px;font-size:.9rem}
 input,select,button{font:inherit;color:var(--ink)}
 input,select{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:11px 12px;min-width:0;width:100%}
 :focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+[hidden]{display:none!important}
 .btn{background:var(--acc);color:#fff;border:0;border-radius:10px;padding:11px 16px;font-weight:600;cursor:pointer}
 .btn.ghost{background:none;color:var(--ink);border:1px solid var(--line)}
 .btn.danger{background:none;color:#e03131;border:1px solid var(--line)}
 .tabs{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
 .tab{flex:1 1 auto;border:1px solid var(--line);background:var(--card);padding:6px 8px;border-radius:99px;cursor:pointer;font-weight:600;font-size:.78rem;text-align:center}
 .tab[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.filters{display:grid;grid-template-columns:2fr 1fr;gap:8px;margin-bottom:10px}
+.filters{display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:10px}
+.fpanel{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;padding:10px;background:var(--card);border:1px solid var(--line);border-radius:12px}
+.fpanel label.chk{grid-column:1/-1;display:flex;gap:8px;align-items:center;font-size:.9rem}
+.fpanel label.chk input{width:auto}
 .stats{color:var(--mute);font-size:.82rem;margin-bottom:10px}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 @media (min-width:600px){.grid{grid-template-columns:repeat(5,1fr)}}
@@ -40,6 +47,9 @@ input,select{background:var(--card);border:1px solid var(--line);border-radius:1
 .cover.sp{padding:0;background-size:1000% 1000%;background-repeat:no-repeat}
 .disc.seen .cover{opacity:.55}
 .tag{position:absolute;left:5px;bottom:5px;background:var(--c);color:#fff;font:700 .62rem system-ui;padding:2px 6px;border-radius:4px}
+.age{position:absolute;left:5px;top:9px;color:#fff;font:700 .62rem system-ui;padding:2px 5px;border-radius:4px;background:#2f9e44}
+.age.a10{background:#1971c2}.age.a12{background:#e67700}.age.a16{background:#d9480f}.age.a18{background:#c92a2a}
+.dup{position:absolute;right:5px;top:9px;background:#f08c00;color:#fff;font:700 .62rem system-ui;padding:2px 5px;border-radius:4px}
 .dvd{--c:var(--dvd)}.br{--c:var(--br)}.uhd{--c:var(--uhd)}.grave{--c:var(--grave)}.mkv{--c:var(--mkv)}
 .empty{grid-column:1/-1;text-align:center;color:var(--mute);padding:40px 10px}
 .fab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));box-shadow:0 4px 14px rgba(0,0,0,.35);padding:14px 20px;border-radius:99px}
@@ -49,24 +59,23 @@ dialog h2{margin:0 0 10px;font:700 1.15rem "Iowan Old Style",Georgia,serif}
 .bar{display:flex;gap:8px;margin-bottom:8px}
 .bar select{width:auto;flex:none}
 .res{display:grid;gap:8px;margin-top:10px}
-.r{display:flex;gap:10px;align-items:center;border-top:1px solid var(--line);padding-top:8px;font-size:.9rem}
-.r img,.r .ph{width:46px;height:69px;object-fit:cover;border-radius:4px;background:var(--line);flex:none}
-.r .info{flex:1;min-width:0}
+.sg{display:grid;gap:6px;margin-top:6px}
+.sg button{display:flex;gap:10px;align-items:center;text-align:left;background:none;border:1px solid var(--line);border-radius:10px;padding:6px 8px;cursor:pointer}
+.sg img{width:30px;height:44px;object-fit:cover;border-radius:3px;flex:none}
+.sg .m{display:block}
 .m{color:var(--mute);font-size:.8rem}
 .sec{border-top:1px solid var(--line);margin-top:14px;padding-top:12px}
 .sec h3{margin:0 0 8px;font-size:.95rem}
 .stack{display:grid;gap:8px}
 .stars button{background:none;border:0;cursor:pointer;font-size:1.6rem;padding:0 2px;color:var(--line)}
 .stars button.on{color:#f0b429}
-.big{display:flex;gap:12px}.big .cover{width:110px;flex:none}
 .close{float:right}
 .note{color:var(--mute);font-size:.82rem}
 .note a{color:var(--acc)}
-details{margin-top:24px}summary{cursor:pointer;font-weight:600}
 #vid{width:100%;aspect-ratio:4/3;object-fit:cover;background:#000;border-radius:10px;margin:8px 0}
 .st{font-size:.85rem;margin:8px 0}
 .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
-.gear{font-size:1.3rem;padding:4px 12px;line-height:1.2}
+.gear{font-size:1.1rem;padding:6px 12px;line-height:1.2}
 .filters2{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:10px}
 .list{display:grid;gap:8px}
 .li{display:flex;gap:10px;align-items:center;text-align:left;background:var(--card);color:var(--ink);font:inherit;border:1px solid var(--line);border-left:4px solid var(--c);border-radius:10px;padding:8px;cursor:pointer}
@@ -76,27 +85,64 @@ details{margin-top:24px}summary{cursor:pointer;font-weight:600}
 .picks{display:flex;gap:8px;overflow-x:auto}
 .picks img{height:120px;border-radius:6px;border:3px solid transparent;cursor:pointer;flex:none}
 .picks img.on{border-color:var(--acc)}
+/* page film */
+.fbar{position:sticky;top:0;z-index:5;display:flex;gap:10px;align-items:center;background:var(--bg);padding:10px 0;margin-bottom:8px;border-bottom:1px solid var(--line)}
+.fbar .ft{font-weight:700;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hero{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start}
+.fcover{width:min(46vw,240px);flex:none;cursor:zoom-in}
+.hero .side{flex:1 1 220px;min-width:0;display:grid;gap:10px}
+.hero h1{font-size:1.5rem}
+.meta{color:var(--mute);font-size:.9rem}
+.pill{display:inline-block;color:#fff;font:700 .72rem system-ui;padding:2px 8px;border-radius:99px;background:#2f9e44;margin-right:6px}
+.pill.a10{background:#1971c2}.pill.a12{background:#e67700}.pill.a16{background:#d9480f}.pill.a18{background:#c92a2a}.pill.d{background:#f08c00}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:99px;padding:6px 12px;font-size:.85rem;cursor:pointer;font-weight:600}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip.link{font-weight:500}
+.warn{background:#fff4e0;color:#7a4b00;border:1px solid #f0c36d;border-radius:10px;padding:10px 12px;font-size:.88rem}
+@media (prefers-color-scheme:dark){.warn{background:#3a2c10;color:#ffd58a;border-color:#6b4d12}}
+.gal{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px}
+.gal img{height:150px;border-radius:8px;flex:none;cursor:zoom-in;background:var(--line)}
+.rec{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px}
+.ri{flex:none;width:96px;background:none;border:0;padding:0;text-align:left;cursor:pointer}
+.ri .cover{width:96px;border-top-width:3px}
+.ri .rt{font-size:.78rem;font-weight:600;margin-top:4px;line-height:1.2}
+.ri .m{font-size:.72rem}
+.light{width:min(96vw,900px);background:#000;color:#fff;padding:8px}
+.light img{width:100%;max-height:78vh;object-fit:contain;display:block}
+.light .bar{margin:8px 0 0;align-items:center;justify-content:space-between}
+.light .btn{background:#222;color:#fff;border:0}
+.lrow{display:flex;gap:8px;align-items:center;border-top:1px solid var(--line);padding:8px 0}
+.lrow input{flex:1}
 </style>
 </head>
 <body>
-<main>
+<main id="home">
 <div class="top"><div><h1>MOVY</h1>
-<p class="sub">Ma collection, avec ses jaquettes.</p></div><button class="btn ghost gear" id="gear" aria-label="Réglages">⚙</button></div>
+<p class="sub">Ma collection, avec ses jaquettes.</p></div><div class="bar"><button class="btn ghost gear" id="listsBtn">Listes</button><button class="btn ghost gear" id="gear" aria-label="Réglages">⚙</button></div></div>
 <div class="tabs" id="tabs"></div>
 <div class="filters">
-  <input id="q" type="search" placeholder="Filtrer mes disques…" aria-label="Filtrer">
-  <select id="seen" aria-label="Statut"><option value="">Tous</option><option value="no">À voir</option><option value="yes">Déjà vus</option></select>
+  <input id="q" type="search" placeholder="Titre, acteur, réalisateur, année, genre…" aria-label="Rechercher">
+  <button class="btn ghost" id="fbtn">Filtres</button>
+</div>
+<div class="fpanel" id="fpanel" hidden>
+  <select id="seen" aria-label="Statut"><option value="">Vus et à voir</option><option value="no">À voir</option><option value="yes">Déjà vus</option></select>
+  <select id="age" aria-label="Classification"><option value="">Tous publics</option><option value="tp">Tout public</option><option value="10">Interdit -10 ans</option><option value="12">Interdit -12 ans</option><option value="16">Interdit -16 ans</option><option value="18">Interdit -18 ans</option><option value="none">Non renseigné</option></select>
+  <select id="genre" aria-label="Genre"><option value="">Tous genres</option></select>
+  <select id="decade" aria-label="Période"><option value="">Toutes années</option></select>
+  <label class="chk"><input type="checkbox" id="dupOnly"> Seulement les doublons</label>
+  <button class="btn ghost" id="fclear" style="grid-column:1/-1">Réinitialiser les filtres</button>
 </div>
 <div class="filters2">
   <select id="sort" aria-label="Trier"><option value="az">Titre A → Z</option><option value="za">Titre Z → A</option><option value="yd">Année (récent)</option><option value="ya">Année (ancien)</option><option value="rate">Ma note</option><option value="imdb">Note IMDb</option><option value="new">Ajoutés récemment</option></select>
-  <select id="genre" aria-label="Genre"><option value="">Tous genres</option></select>
+  <select id="list" aria-label="Liste"><option value="">Toutes les listes</option></select>
   <button class="btn ghost" id="view">☰ Liste</button>
 </div>
 <div class="stats" id="stats"></div>
 <div class="grid" id="grid"></div>
-
-
 </main>
+
+<section id="film" hidden></section>
 
 <button class="btn fab" id="fab">＋ Ajouter un disque</button>
 
@@ -106,7 +152,8 @@ details{margin-top:24px}summary{cursor:pointer;font-weight:600}
   <button class="btn" id="scanBtn" style="width:100%;margin-bottom:8px">Scanner le code-barre</button>
   <div class="note" id="res"></div>
   <div class="stack" style="margin-top:10px">
-    <div class="bar" style="margin:0"><select id="fmt" aria-label="Format"><option value="dvd">DVD</option><option value="br">Blu-ray</option><option value="uhd">4K UHD</option><option value="grave">Gravé</option><option value="mkv">MKV</option></select><input id="mt" placeholder="Titre" maxlength="120"></div>
+    <div class="bar" style="margin:0"><select id="fmt" aria-label="Format"><option value="dvd">DVD</option><option value="br">Blu-ray</option><option value="uhd">4K UHD</option><option value="grave">Gravé</option><option value="mkv">MKV</option></select><input id="mt" placeholder="Titre" maxlength="120" autocomplete="off"></div>
+    <div class="sg" id="sugg"></div>
     <input id="my" type="number" placeholder="Année (facultatif)" min="1888" max="2100">
     <div class="picks" id="pick"></div>
     <div class="note">Jaquette (recommandé)</div>
@@ -119,20 +166,34 @@ details{margin-top:24px}summary{cursor:pointer;font-weight:600}
 <dialog id="scanD">
   <button class="btn ghost close" id="scanX">Annuler</button>
   <h2>Scanner un code-barre</h2>
-  <video id="vid" playsinline muted></video>
+  <video id="vid" playsinline muted autoplay></video>
   <div class="note" id="scanMsg"></div>
-  <div class="bar" style="margin-top:10px"><input id="code" inputmode="numeric" placeholder="Ou saisis les chiffres du code" aria-label="Code-barre"><button class="btn" id="codeGo">OK</button></div>
+  <div class="bar" style="margin-top:10px">
+    <label class="btn" style="flex:1;text-align:center">Photo du code-barre<input id="codePhoto" type="file" accept="image/*" capture="environment" hidden></label>
+    <label class="btn ghost" style="flex:1;text-align:center">Image existante<input id="codePhoto2" type="file" accept="image/*" hidden></label>
+  </div>
+  <button class="btn ghost" id="torch" style="width:100%;margin-bottom:8px" hidden>Lampe : éteinte</button>
+  <div class="bar"><input id="code" inputmode="numeric" placeholder="Ou saisis les chiffres du code" aria-label="Code-barre"><button class="btn" id="codeGo">OK</button></div>
 </dialog>
 
 <dialog id="setD">
   <button class="btn ghost close" id="setX">Fermer</button>
   <h2>Réglages</h2>
   <div class="sec">
+    <h3>TMDB (facultatif, recommandé)</h3>
+    <p class="note">Clé gratuite sur themoviedb.org (compte, puis Réglages → API). Apporte les photos HD du film, la classification d'âge française, de meilleures recommandations et la recherche de jaquettes. Sans clé, l'appli utilise Wikidata et Wikipédia.</p>
+    <div class="bar"><input id="tmdb" type="password" placeholder="Clé TMDB" autocomplete="off"><button class="btn" id="tmdbSave">Enregistrer</button></div>
+  </div>
+  <div class="sec">
     <h3>Note IMDb (facultatif)</h3>
     <p class="note">Clé gratuite sur omdbapi.com (« API Key », reçue par e-mail). Sans clé, tout marche sauf la note IMDb.</p>
     <div class="bar"><input id="omdb" type="password" placeholder="Clé OMDb" autocomplete="off"><button class="btn" id="omdbSave">Enregistrer</button></div>
   </div>
-
+  <div class="sec">
+    <h3>Fiches des films</h3>
+    <p class="note" id="enrichSt"></p>
+    <button class="btn ghost" id="reload">Recharger toutes les fiches</button>
+  </div>
   <div class="sec">
     <h3>Synchronisation entre appareils</h3>
     <p class="note">Ta liste est stockée dans un Gist privé de ton compte GitHub. <a href="https://github.com/settings/tokens/new?scopes=gist&description=dvdtheque" target="_blank" rel="noopener">Crée un jeton avec la seule autorisation « gist »</a>, puis colle le même jeton sur chaque appareil.</p>
@@ -144,214 +205,586 @@ details{margin-top:24px}summary{cursor:pointer;font-weight:600}
     <h3>Sauvegarde</h3>
     <div class="bar"><button class="btn ghost" id="exp">Exporter (JSON)</button><button class="btn ghost" id="impBtn">Importer</button><input type="file" id="imp" accept="application/json" hidden></div>
   </div>
-
 </dialog>
 
-<dialog id="detD"></dialog>
+<dialog id="listD">
+  <button class="btn ghost close" id="listX">Fermer</button>
+  <h2>Mes listes</h2>
+  <p class="note">Crée tes listes (« Top 10 », « À revoir », « Soirée enfants »…) puis range-y les films depuis leur page. « Vu » et « à voir » se règlent aussi depuis la page du film.</p>
+  <div id="listRows"></div>
+  <div class="bar" style="margin-top:12px"><input id="newList" placeholder="Nom de la nouvelle liste" maxlength="40"><button class="btn" id="newListGo">Créer</button></div>
+</dialog>
+
+<dialog id="lightD" class="light">
+  <img id="lImg" alt="">
+  <div class="bar"><button class="btn" id="lPrev" aria-label="Précédente">‹</button><span id="lCnt" class="m"></span><button class="btn" id="lNext" aria-label="Suivante">›</button><button class="btn" id="lClose">Fermer</button></div>
+</dialog>
 
 <script>
 const $=id=>document.getElementById(id);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function el(t,p,...c){const e=document.createElement(t);Object.entries(p||{}).forEach(([k,v])=>{if(k==="class")e.className=v;else if(k==="style")e.style.cssText=v;else if(k.startsWith("on"))e[k]=v;else if(v===true)e.setAttribute(k,"");else if(v!==false&&v!=null)e.setAttribute(k,v)});c.flat(9).forEach(x=>{if(x==null||x===false)return;e.append(x.nodeType?x:document.createTextNode(x))});return e}
 const FMT={dvd:"DVD",br:"Blu-ray",uhd:"4K UHD",grave:"Gravé",mkv:"MKV"};
-const KEY="dvdtheque-v2",OLD="dvdtheque-v1",TK="tmdb-key",SK="sync-cfg";
-let items=[],del={},filter="tous",cfg={},syncing=false,timer=null;
+const AGES={tp:"Tout public","10":"Interdit -10 ans","12":"Interdit -12 ans","16":"Interdit -16 ans","18":"Interdit -18 ans"};
+const AGES_S={tp:"TP","10":"-10","12":"-12","16":"-16","18":"-18"};
+const KEY="dvdtheque-v2",OLD="dvdtheque-v1",TK="tmdb-key",SK="sync-cfg",OK="omdb-key";
+const TMG="https://image.tmdb.org/t/p/";
+const DEFAULT_LISTS=[["revoir","À revoir"],["top10","Top 10"],["favoris","Favoris"]];
+const defaults=()=>DEFAULT_LISTS.map(([id,name])=>({id,name,u:1}));
+let items=[],del={},lists=[],filter="tous",cfg={},syncing=false,timer=null;
 try{
   const s=JSON.parse(localStorage.getItem(KEY)||"null");
-  if(s&&Array.isArray(s.items)){items=s.items;del=s.del||{}}
-  else{const o=JSON.parse(localStorage.getItem(OLD)||"[]");if(Array.isArray(o))items=o.map(i=>({...i,u:i.u||1}))}
-}catch(e){}
+  if(s&&Array.isArray(s.items)){items=s.items;del=s.del||{};lists=Array.isArray(s.lists)?s.lists:defaults()}
+  else{const o=JSON.parse(localStorage.getItem(OLD)||"[]");if(Array.isArray(o))items=o.map(i=>({...i,u:i.u||1}));lists=defaults()}
+}catch(e){lists=defaults()}
 try{cfg=JSON.parse(localStorage.getItem(SK)||"{}")}catch(e){cfg={}}
-function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify({items,del}))}catch(e){alert("Stockage plein. Exporte ta bibliothèque en JSON pour la sauvegarder.")}}
+function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify({items,del,lists}))}catch(e){alert("Stockage plein. Exporte ta bibliothèque en JSON pour la sauvegarde.")}}
 function save(i){if(i)i.u=Date.now();saveLocal();queueSync()}
-const OK="omdb-key";
-function omdbKey(){try{return localStorage.getItem(OK)||""}catch(e){return ""}}
+const payload=()=>JSON.stringify({items,del,lists});
+function ls(k){try{return localStorage.getItem(k)||""}catch(e){return ""}}
+const omdbKey=()=>ls(OK),tmKey=()=>ls(TK);
 function cleanTitle(t){
-  return t.replace(/\(.*?\)|\[.*?\]/g," ")
+  return (t||"").replace(/\(.*?\)|\[.*?\]/g," ")
     .replace(/\s*[:\-–]?\s*(l['’]int[ée]grale.*|int[ée]grale.*|the complete series.*|saisons?\s*\d.*|season\s*\d.*|coffret.*|édition.*|collector.*)$/i," ")
     .replace(/\s+/g," ").trim();
 }
+const nrm=s=>(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+const nkey=t=>nrm(cleanTitle(t)).replace(/[^a-z0-9]+/g," ").trim();
 const nid=()=>Date.now()+"-"+Math.random().toString(36).slice(2,6);
+const yr=i=>parseInt(i.year||(i.info&&i.info.year))||0;
+const imdbN=i=>parseFloat(i.info&&i.info.imdb)||0;
+const listName=id=>{const l=lists.find(x=>x.id===id&&!x.d);return l?l.name:""};
+const alive=()=>lists.filter(l=>!l.d);
 
 function img(src,alt){const i=document.createElement("img");i.src=src;i.alt=alt;i.loading="lazy";return i}
-function fillCover(el,c,t){
+function fillCover(e,c,t){
   const m=/^sp:(\d+):(\d+)$/.exec(c||"");
-  if(m){const p=+m[2];el.classList.add("sp");el.style.backgroundImage="url(s"+m[1]+".jpg)";el.style.backgroundPosition=((p%10)/9*100)+"% "+(Math.floor(p/10)/9*100)+"%";el.setAttribute("role","img");el.setAttribute("aria-label",t)}
-  else if(c)el.appendChild(img(c,t));else el.textContent=t;
+  if(m){const p=+m[2];e.classList.add("sp");e.style.backgroundImage="url(s"+m[1]+".jpg)";e.style.backgroundPosition=((p%10)/9*100)+"% "+(Math.floor(p/10)/9*100)+"%";e.setAttribute("role","img");e.setAttribute("aria-label",t)}
+  else if(c)e.appendChild(img(c,t));else e.textContent=t;
 }
 function thumb(file){return new Promise((ok,ko)=>{const r=new FileReader();r.onerror=ko;r.onload=()=>{const im=new Image();im.onerror=ko;im.onload=()=>{const w=Math.min(320,im.width),h=Math.round(im.height*w/im.width),c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(im,0,0,w,h);ok(c.toDataURL("image/jpeg",.7))};im.src=r.result};r.readAsDataURL(file)})}
 
+/* ---------- Doublons ---------- */
+let dupIds=new Set();
+function computeDups(){
+  const g=new Map();items.forEach(i=>{const k=nkey(i.title);if(k){if(!g.has(k))g.set(k,[]);g.get(k).push(i)}});
+  dupIds=new Set();
+  g.forEach(a=>{for(let x=0;x<a.length;x++)for(let y=x+1;y<a.length;y++){const p=yr(a[x]),q=yr(a[y]);if(!p||!q||p===q){dupIds.add(a[x].id);dupIds.add(a[y].id)}}});
+}
+function dupsOf(i){const k=nkey(i.title),y=yr(i);return items.filter(x=>x.id!==i.id&&nkey(x.title)===k&&(!y||!yr(x)||yr(x)===y))}
+
 /* ---------- Ajout d'un disque ---------- */
-let pendingCover="";
-$("fab").onclick=()=>$("addD").showModal();
+let pendingCover="",pendingCode="";
+function openAdd(p){
+  p=p||{};
+  if(p.title!==undefined)$("mt").value=p.title;
+  if(p.year!==undefined)$("my").value=p.year;
+  pendingCover=p.cover||"";pendingCode=p.code||"";
+  const pk=$("pick");pk.innerHTML="";
+  if(pendingCover){const im=img(pendingCover,"Jaquette");im.className="on";pk.appendChild(im)}
+  $("sugg").innerHTML="";
+  if(!$("addD").open)$("addD").showModal();
+}
+$("fab").onclick=()=>openAdd();
 $("addX").onclick=()=>$("addD").close();
 $("mAdd").onclick=async()=>{
   const t=$("mt").value.trim();if(!t){$("mt").focus();return}
+  const k=nkey(t),y=parseInt($("my").value)||0;
+  const same=items.filter(x=>(nkey(x.title)===k&&(!y||!yr(x)||yr(x)===y))||(pendingCode&&x.code===pendingCode));
+  if(same.length&&!confirm("Tu as déjà « "+same[0].title+" » en "+same.map(x=>FMT[x.format]).join(", ")+". L'ajouter quand même ?"))return;
   let cover=pendingCover;const f=$("mp").files[0]||$("mp2").files[0];
   if(f){try{cover=await thumb(f)}catch(e){alert("Photo illisible. Le disque sera ajouté sans jaquette.")}}
-  const it={id:nid(),title:t,year:$("my").value,cover,overview:"",format:$("fmt").value,seen:false,rating:0};
+  const it={id:nid(),title:t,year:$("my").value,cover,overview:"",format:$("fmt").value,seen:false,rating:0,lists:[]};
+  if(pendingCode)it.code=pendingCode;
   items.unshift(it);save(it);
-  $("mt").value="";$("my").value="";$("mp").value="";$("mp2").value="";$("mpName").textContent="";pendingCover="";$("pick").innerHTML="";$("res").textContent="";
-  $("addD").close();render();
+  $("mt").value="";$("my").value="";$("mp").value="";$("mp2").value="";$("mpName").textContent="";pendingCover="";pendingCode="";$("pick").innerHTML="";$("res").textContent="";$("sugg").innerHTML="";
+  $("addD").close();render();enrichAll();
 };
 ["mp","mp2"].forEach(id=>$(id).addEventListener("change",e=>{const f=e.target.files[0];$("mpName").textContent=f?"Image choisie : "+f.name:"";if(f)$(id==="mp"?"mp2":"mp").value=""}));
 
-/* ---------- Scan code-barre ---------- */
-let stream=null,scanning=false,zx=null;
-function loadZX(){return window.ZXing?Promise.resolve():new Promise((ok,ko)=>{const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js";s.onload=ok;s.onerror=ko;document.head.appendChild(s)})}
-async function startScan(){
-  $("scanD").showModal();$("scanMsg").textContent="Cadre le code-barre au dos du boîtier.";
-  const v=$("vid");scanning=true;
+/* suggestions de titres pendant la saisie */
+const FILMRE=/film|série télévisée|téléfilm|animation|documentaire|court métrage/i;
+let sgT=null;
+$("mt").addEventListener("input",()=>{clearTimeout(sgT);const v=$("mt").value.trim();if(v.length<3){$("sugg").innerHTML="";return}sgT=setTimeout(()=>suggest(v),450)});
+async function suggest(v){
+  const box=$("sugg");
   try{
-    if("BarcodeDetector" in window){
-      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
-      v.srcObject=stream;await v.play();
-      const det=new BarcodeDetector({formats:["ean_13","ean_8","upc_a"]});
-      const loop=async()=>{if(!scanning)return;try{const c=await det.detect(v);if(c.length){onCode(c[0].rawValue);return}}catch(e){}setTimeout(loop,250)};
-      loop();
+    let rows;
+    if(tmKey()){
+      const s=await tm("/search/movie",{query:v});
+      rows=(s.results||[]).slice(0,6).map(x=>({title:x.title,year:(x.release_date||"").slice(0,4),cover:x.poster_path?TMG+"w500"+x.poster_path:"",thumb:x.poster_path?TMG+"w92"+x.poster_path:"",sub:x.original_title&&x.original_title!==x.title?x.original_title:""}));
     }else{
-      await loadZX();
-      zx=new ZXing.BrowserMultiFormatReader();
-      await zx.decodeFromConstraints({video:{facingMode:"environment"}},v,res=>{if(res&&scanning)onCode(res.getText())});
+      const s=await wd({action:"wbsearchentities",search:v,language:"fr",uselang:"fr",type:"item",limit:10});
+      rows=(s.search||[]).filter(x=>FILMRE.test(x.description||"")).slice(0,6).map(x=>({title:x.label,year:((x.description||"").match(/\b(18|19|20)\d{2}\b/)||[""])[0],sub:x.description||""}));
     }
-  }catch(e){$("scanMsg").textContent="Caméra inaccessible ("+((e&&e.name)||"erreur")+"). Autorise la caméra pour ce site, ou saisis les chiffres du code ci-dessous."}
+    if($("mt").value.trim()!==v)return;
+    box.innerHTML="";
+    rows.forEach(r=>box.appendChild(el("button",{type:"button",onclick:()=>{$("mt").value=r.title;$("my").value=r.year;if(r.cover){pendingCover=r.cover;const pk=$("pick");pk.innerHTML="";const im=img(r.cover,"Jaquette");im.className="on";pk.appendChild(im)}box.innerHTML=""}},
+      r.thumb?el("img",{src:r.thumb,alt:""}):null,
+      el("span",null,el("b",null,r.title+(r.year?" ("+r.year+")":"")),el("span",{class:"m"},r.sub)))));
+  }catch(e){box.innerHTML=""}
 }
-function stopScan(){scanning=false;if(zx){try{zx.reset()}catch(e){}zx=null}if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}$("vid").srcObject=null}
+
+/* ---------- Scan code-barre ---------- */
+const GTIN_OK=s=>{if(!/^(\d{8}|\d{12,14})$/.test(s))return false;const d=[...s].map(Number),c=d.pop();let t=0;d.reverse().forEach((n,k)=>t+=n*(k%2?1:3));return (10-t%10)%10===c};
+let stream=null,scanning=false,track=null,scanT=null,torchOn=false,scanStart=0,nativeDet=null,tipShown=false,tick=0,zxP=null,reader=null;
+const cvs=document.createElement("canvas"),ctx=cvs.getContext("2d",{willReadFrequently:true});
+const ZX_URLS=["https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js","https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"];
+function loadZX(){
+  if(window.ZXing)return Promise.resolve();
+  if(zxP)return zxP;
+  zxP=(async()=>{for(const u of ZX_URLS){try{await new Promise((ok,ko)=>{const s=document.createElement("script");s.src=u;s.onload=ok;s.onerror=ko;document.head.appendChild(s);setTimeout(()=>ko(new Error("timeout")),12000)});if(window.ZXing)return}catch(e){}}zxP=null;throw new Error("zxing")})();
+  return zxP;
+}
+function zxReader(){
+  if(reader)return reader;
+  const H=new Map(),Z=ZXing;
+  H.set(Z.DecodeHintType.POSSIBLE_FORMATS,[Z.BarcodeFormat.EAN_13,Z.BarcodeFormat.EAN_8,Z.BarcodeFormat.UPC_A,Z.BarcodeFormat.UPC_E]);
+  H.set(Z.DecodeHintType.TRY_HARDER,true);
+  reader=new Z.MultiFormatReader();reader.setHints(H);return reader;
+}
+function zxDecode(c){
+  try{
+    const src=new ZXing.HTMLCanvasElementLuminanceSource(c);
+    const bmp=new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(src));
+    return zxReader().decodeWithState(bmp).getText();
+  }catch(e){return null}
+}
+function zxFrame(v,mode){
+  const vw=v.videoWidth,vh=v.videoHeight;
+  let sx=0,sy=0,sw=vw,sh=vh;
+  if(mode===1){sw=Math.round(vw*.8);sh=Math.round(vh*.5);sx=Math.round((vw-sw)/2);sy=Math.round((vh-sh)/2)}
+  const sc=Math.min(1,1400/sw);cvs.width=Math.round(sw*sc);cvs.height=Math.round(sh*sc);
+  ctx.drawImage(v,sx,sy,sw,sh,0,0,cvs.width,cvs.height);
+  return zxDecode(cvs);
+}
+async function makeNative(){
+  if(!("BarcodeDetector" in window))return null;
+  try{
+    const sup=await BarcodeDetector.getSupportedFormats();
+    const f=["ean_13","ean_8","upc_a","upc_e"].filter(x=>sup.includes(x));
+    return f.length?new BarcodeDetector({formats:f}):null;
+  }catch(e){return null}
+}
+async function openCam(){
+  const tries=[{video:{facingMode:{ideal:"environment"},width:{ideal:1920},height:{ideal:1080}},audio:false},{video:{facingMode:"environment"},audio:false},{video:true,audio:false}];
+  let err;
+  for(const c of tries){try{return await navigator.mediaDevices.getUserMedia(c)}catch(e){err=e;if(e&&(e.name==="NotAllowedError"||e.name==="SecurityError"))break}}
+  throw err;
+}
+function camMsg(e){
+  const n=(e&&e.name)||"";
+  if(n==="NotAllowedError"||n==="SecurityError")return "Caméra refusée. Autorise la caméra pour ce site dans les réglages du téléphone ou du navigateur, ou utilise « Photo du code-barre » ci-dessous.";
+  if(n==="NotFoundError"||n==="OverconstrainedError"||n==="NoCamera")return "Aucune caméra utilisable ici. Utilise « Photo du code-barre » ou saisis les chiffres.";
+  if(n==="NotReadableError")return "La caméra est déjà utilisée par une autre appli. Ferme-la puis réessaie, ou utilise « Photo du code-barre ».";
+  return "Caméra inaccessible ("+(n||"erreur")+"). Utilise « Photo du code-barre » ou saisis les chiffres.";
+}
+const setScan=t=>{$("scanMsg").textContent=t};
+async function tuneTrack(){
+  try{
+    const caps=track.getCapabilities?track.getCapabilities():{};
+    const adv=[];
+    if(caps.focusMode&&caps.focusMode.includes("continuous"))adv.push({focusMode:"continuous"});
+    if(adv.length)await track.applyConstraints({advanced:adv});
+    $("torch").hidden=!caps.torch;torchOn=false;$("torch").textContent="Lampe : éteinte";
+  }catch(e){}
+}
+$("torch").onclick=async()=>{try{torchOn=!torchOn;await track.applyConstraints({advanced:[{torch:torchOn}]});$("torch").textContent="Lampe : "+(torchOn?"allumée":"éteinte")}catch(e){torchOn=false;$("torch").hidden=true}};
+async function startScan(){
+  const d=$("scanD");if(!d.open)d.showModal();
+  setScan("Démarrage de la caméra…");$("torch").hidden=true;$("code").value="";
+  scanning=true;scanStart=Date.now();tipShown=false;tick=0;
+  const v=$("vid");
+  try{
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw {name:"NoCamera"};
+    const s=await openCam();
+    if(!scanning){s.getTracks().forEach(t=>t.stop());return}
+    stream=s;v.srcObject=s;v.muted=true;v.setAttribute("playsinline","");
+    try{await v.play()}catch(e){}
+    track=s.getVideoTracks()[0];tuneTrack();
+    nativeDet=await makeNative();
+    if(!nativeDet)loadZX().catch(()=>setScan("Le lecteur n'a pas pu se charger (connexion ?). Utilise « Photo du code-barre » ou saisis les chiffres."));
+    if(!scanning)return;
+    setScan("Cadre le code-barre à 15–20 cm, bien éclairé, sans reflet.");
+    loop();
+  }catch(e){setScan(camMsg(e))}
+}
+async function loop(){
+  if(!scanning)return;
+  const v=$("vid");
+  try{
+    if(v.readyState>=2&&v.videoWidth){
+      let code=null;
+      if(nativeDet){try{const r=await nativeDet.detect(v);if(r.length)code=r[0].rawValue}catch(e){nativeDet=null;loadZX().catch(()=>{})}}
+      else if(window.ZXing)code=zxFrame(v,tick++%2);
+      const c=code&&String(code).replace(/\D/g,"");
+      if(c&&GTIN_OK(c)){onCode(c);return}
+    }
+    if(!tipShown&&Date.now()-scanStart>10000){tipShown=true;setScan("Rien de lu. Rapproche-toi, évite les reflets sur le plastique, allume la lampe, ou utilise « Photo du code-barre ».")}
+  }catch(e){}
+  scanT=setTimeout(loop,nativeDet?120:90);
+}
+function stopScan(){scanning=false;clearTimeout(scanT);if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}track=null;$("vid").srcObject=null}
 $("scanD").addEventListener("close",stopScan);
 $("scanBtn").onclick=startScan;
 $("scanX").onclick=()=>$("scanD").close();
-$("codeGo").onclick=()=>{const c=$("code").value.replace(/\D/g,"");if(c.length>=8)onCode(c);else $("code").focus()};
+$("codeGo").onclick=()=>{
+  const c=$("code").value.replace(/\D/g,"");
+  if(c.length<8){$("code").focus();setScan("Saisis au moins 8 chiffres.");return}
+  if(!GTIN_OK(c)){$("code").focus();setScan("Ce code semble faux (faute de frappe ?). Vérifie les chiffres sous le code-barre.");return}
+  onCode(c);
+};
+$("code").addEventListener("keydown",e=>{if(e.key==="Enter")$("codeGo").click()});
+
+/* lecture d'une photo du code-barre */
+function loadImg(file){return new Promise((ok,ko)=>{const u=URL.createObjectURL(file),im=new Image();im.onload=()=>{URL.revokeObjectURL(u);ok(im)};im.onerror=()=>{URL.revokeObjectURL(u);ko(new Error("img"))};im.src=u})}
+async function decodePhoto(file){
+  const im=await loadImg(file),W=im.naturalWidth,H=im.naturalHeight;
+  if("BarcodeDetector" in window){
+    const nd=await makeNative();
+    if(nd){try{const r=await nd.detect(im);const c=r.length&&String(r[0].rawValue).replace(/\D/g,"");if(c&&GTIN_OK(c))return c}catch(e){}}
+  }
+  await loadZX();
+  const att=[];
+  [1600,1000,2400].forEach(m=>att.push({x:0,y:0,w:1,h:1,m}));
+  [0,.25,.5].forEach(y=>att.push({x:0,y,w:1,h:.5,m:2000}));
+  att.push({x:.15,y:.25,w:.7,h:.5,m:1600});
+  for(const rot of [0,1])for(const a of att){
+    const sx=Math.round(W*a.x),sy=Math.round(H*a.y),sw=Math.round(W*a.w),sh=Math.round(H*a.h),sc=Math.min(1,a.m/sw);
+    const w=Math.max(1,Math.round(sw*sc)),h=Math.max(1,Math.round(sh*sc));
+    if(rot){cvs.width=h;cvs.height=w;ctx.save();ctx.translate(h,0);ctx.rotate(Math.PI/2);ctx.drawImage(im,sx,sy,sw,sh,0,0,w,h);ctx.restore()}
+    else{cvs.width=w;cvs.height=h;ctx.drawImage(im,sx,sy,sw,sh,0,0,w,h)}
+    const t=zxDecode(cvs),c=t&&t.replace(/\D/g,"");
+    if(c&&GTIN_OK(c))return c;
+    await sleep(0);
+  }
+  return null;
+}
+["codePhoto","codePhoto2"].forEach(id=>$(id).addEventListener("change",async e=>{
+  const f=e.target.files[0];e.target.value="";if(!f)return;
+  stopScan();setScan("Lecture de la photo…");
+  try{
+    const c=await decodePhoto(f);
+    if(c)onCode(c);else setScan("Code-barre introuvable sur la photo. Cadre-le de près, bien net et de face, puis réessaie, ou saisis les chiffres.");
+  }catch(err){setScan(err&&err.message==="zxing"?"Le lecteur n'a pas pu se charger (connexion ?). Saisis les chiffres du code.":"Photo illisible, réessaie.")}
+}));
+
 async function onCode(code){
   stopScan();if($("scanD").open)$("scanD").close();
-  const out=$("res"),pk=$("pick");pk.innerHTML="";pendingCover="";
-  const fail=m=>{out.textContent=m+" Code lu : "+code+". Tape le titre ci-dessous. ";const a=document.createElement("a");a.href="https://www.google.com/search?q="+encodeURIComponent(code+" dvd blu-ray");a.target="_blank";a.rel="noopener";a.textContent="Chercher ce code sur Google";out.appendChild(a)};
-  out.textContent="Code "+code+" : recherche du produit…";
+  const out=$("res"),pk=$("pick");pk.innerHTML="";pendingCover="";pendingCode=code;
+  const fail=m=>{out.textContent=m+" Code lu : "+code+". Cherche le titre ci-dessous, ou tape-le. ";const a=document.createElement("a");a.href="https://www.google.com/search?q="+encodeURIComponent(code+" dvd blu-ray");a.target="_blank";a.rel="noopener";a.textContent="Chercher ce code sur Google";out.appendChild(a);$("mt").focus()};
+  if(!$("addD").open)$("addD").showModal();
+  const have=items.find(x=>x.code===code);
+  const warn=have?"Attention : ce code-barre est déjà dans ta collection (« "+have.title+" », "+FMT[have.format]+"). ":"";
+  out.textContent=warn+"Code "+code+" : recherche du produit…";
   try{
-    const r=await fetch("https://api.upcitemdb.com/prod/trial/lookup?upc="+encodeURIComponent(code));
-    if(r.status===429){fail("Limite de recherches atteinte pour aujourd’hui.");return}
+    const ac=new AbortController(),tm_=setTimeout(()=>ac.abort(),9000);
+    let r;try{r=await fetch("https://api.upcitemdb.com/prod/trial/lookup?upc="+encodeURIComponent(code),{signal:ac.signal})}finally{clearTimeout(tm_)}
+    if(r.status===429){fail(warn+"Limite de recherches atteinte pour aujourd’hui.");return}
     const j=await r.json();const it=(j.items||[])[0];
-    if(!it||!it.title){fail("Code non reconnu par la base.");return}
+    if(!it||!it.title){fail(warn+"Code non reconnu par la base.");return}
     const raw=it.title,low=raw.toLowerCase();
     if(/4k|uhd/.test(low))$("fmt").value="uhd";else if(/blu-?ray/.test(low))$("fmt").value="br";else if(/dvd/.test(low))$("fmt").value="dvd";
     $("mt").value=cleanTitle(raw.replace(/blu-?ray|4k|uhd|ultra hd|dvd|steelbook/ig," "));
     const imgs=(it.images||[]).filter(u=>/^https:/.test(u)).slice(0,6);
-    out.textContent=imgs.length?"Produit trouvé. Touche la jaquette qui correspond, ou prends une photo.":"Produit trouvé, mais sans image. Prends la jaquette en photo.";
+    out.textContent=warn+(imgs.length?"Produit trouvé. Touche la jaquette qui correspond, ou prends une photo.":"Produit trouvé, mais sans image. Prends la jaquette en photo.");
     imgs.forEach(u=>{const im=img(u,"Jaquette proposée");im.onclick=()=>{pk.querySelectorAll("img").forEach(x=>x.classList.remove("on"));im.classList.add("on");pendingCover=u};im.onerror=()=>im.remove();pk.appendChild(im)});
-  }catch(e){fail("La recherche par code est bloquée ou indisponible ("+((e&&e.message)||"erreur")+").")}
+    suggest($("mt").value.trim());
+  }catch(e){fail(warn+"La recherche par code est bloquée ou indisponible ("+((e&&e.name==="AbortError")?"délai dépassé":(e&&e.message)||"erreur")+").")}
 }
 
-/* ---------- Fiche détail ---------- */
-function detail(i){
-  const d=$("detD");d.innerHTML="";
-  const x=document.createElement("button");x.className="btn ghost close";x.textContent="Fermer";x.onclick=()=>d.close();
-  const h=document.createElement("h2");h.textContent=i.title+(i.year?" ("+i.year+")":"");
-  const big=document.createElement("div");big.className="big";
-  const cv=document.createElement("div");cv.className="cover "+i.format;fillCover(cv,i.cover,i.title);
-  const side=document.createElement("div");side.className="stack";side.style.flex="1";
-  const fs=document.createElement("select");Object.entries(FMT).forEach(([k,l])=>{const o=document.createElement("option");o.value=k;o.textContent=l;if(k===i.format)o.selected=true;fs.appendChild(o)});
-  fs.onchange=()=>{i.format=fs.value;save(i);render()};
-  const sb=document.createElement("button");sb.className="btn"+(i.seen?" ghost":"");sb.textContent=i.seen?"Marquer à voir":"Marquer comme vu";
-  sb.onclick=()=>{i.seen=!i.seen;save(i);render();detail(i)};
-  const st=document.createElement("div");st.className="stars";
-  for(let n=1;n<=5;n++){const s=document.createElement("button");s.textContent="★";s.setAttribute("aria-label",n+" sur 5");if(n<=(i.rating||0))s.className="on";s.onclick=()=>{i.rating=i.rating===n?0:n;save(i);render();detail(i)};st.appendChild(s)}
-  side.append(fs,sb,st);big.append(cv,side);
-  d.append(x,h,big);const ib=document.createElement("div");ib.className="sec";d.appendChild(ib);renderInfo(i,ib);
-  if(i.overview){const p=document.createElement("p");p.className="note";p.textContent=i.overview;d.appendChild(p)}
-  const sec=document.createElement("div");sec.className="sec stack";
-  const ct=document.createElement("div");ct.className="note";ct.textContent="Changer la jaquette :";
-  const lab=document.createElement("div");lab.className="bar";lab.style.margin="0";
-  const pickIn=(text,cap)=>{const l=document.createElement("label");l.className="btn ghost";l.style.cssText="flex:1;text-align:center";l.textContent=text;const fi=document.createElement("input");fi.type="file";fi.accept="image/*";fi.hidden=true;if(cap)fi.setAttribute("capture","environment");fi.onchange=async()=>{if(fi.files[0]){try{i.cover=await thumb(fi.files[0]);save(i);render();detail(i)}catch(e){alert("Photo illisible.")}}};l.appendChild(fi);return l};
-  lab.append(pickIn("Prendre une photo",true),pickIn("Ma photothèque",false));
-  const dl=document.createElement("button");dl.className="btn danger";dl.textContent="Supprimer ce disque";
-  dl.onclick=()=>{if(confirm("Supprimer « "+i.title+" » ?")){items=items.filter(z=>z.id!==i.id);del[i.id]=Date.now();save();d.close();render()}};
-  sec.append(ct,lab,dl);d.appendChild(sec);
-  if(!d.open)d.showModal();
+/* ---------- Sources d'infos : TMDB, Wikidata, Wikipédia ---------- */
+async function tm(path,params){
+  const k=tmKey(),h={},q=new URLSearchParams(Object.assign({language:"fr-FR"},params));
+  if(k.length>40)h.Authorization="Bearer "+k;else q.set("api_key",k);
+  const r=await fetch("https://api.themoviedb.org/3"+path+"?"+q,{headers:h});
+  if(!r.ok)throw new Error("tmdb "+r.status);
+  return r.json();
 }
-
-/* ---------- Infos du film (Wikidata, sans clé) ---------- */
-const loading=new Set(),failed=new Set();
 async function wd(o){const r=await fetch("https://www.wikidata.org/w/api.php?format=json&origin=*&"+new URLSearchParams(o));if(!r.ok)throw new Error("wikidata");return r.json()}
-async function loadInfo(i){
+const AGEMAP={u:"tp",tp:"tp","0":"tp","10":"10","12":"12","16":"16","18":"18"};
+async function loadTmdb(i){
+  const t=cleanTitle(i.title),y=parseInt(i.year)||0;
+  let s=await tm("/search/movie",Object.assign({query:t,include_adult:"false"},y?{year:y}:{}));
+  let r=s.results||[];
+  if(!r.length&&y){s=await tm("/search/movie",{query:t,include_adult:"false"});r=s.results||[]}
+  if(!r.length)return null;
+  const d=await tm("/movie/"+r[0].id,{append_to_response:"credits,images,release_dates",include_image_language:"fr,en,null"});
+  const crew=(d.credits&&d.credits.crew)||[],cast=(d.credits&&d.credits.cast)||[];
+  let age="";
+  const fr=((d.release_dates&&d.release_dates.results)||[]).find(x=>x.iso_3166_1==="FR");
+  if(fr){const c=(fr.release_dates||[]).map(x=>(x.certification||"").toLowerCase().replace(/[^a-z0-9]/g,"")).find(Boolean);if(c&&AGEMAP[c])age=AGEMAP[c]}
+  const info={v:2,src:"tmdb",tmdbId:d.id,director:crew.filter(x=>x.job==="Director").slice(0,3).map(x=>x.name).join(", "),cast:cast.slice(0,10).map(x=>x.name),year:(d.release_date||"").slice(0,4),runtime:d.runtime||0,imdbId:d.imdb_id||"",plot:d.overview||"",imdb:"",genres:(d.genres||[]).map(x=>x.name),age,
+    poster:d.poster_path?TMG+"w780"+d.poster_path:"",photos:((d.images&&d.images.backdrops)||[]).slice(0,10).map(x=>TMG+"w780"+x.file_path)};
+  await addImdb(info);
+  return info;
+}
+async function addImdb(info){
+  const k=omdbKey();
+  if(k&&info.imdbId){try{const j=await (await fetch("https://www.omdbapi.com/?i="+info.imdbId+"&apikey="+encodeURIComponent(k))).json();if(j.imdbRating&&j.imdbRating!=="N/A")info.imdb=j.imdbRating+"/10"}catch(x){}}
+}
+const BADIMG=/\.svg|logo|icon|flag|commons|disambig|wikidata|question_book|ambox|pictogram|symbol|edit-|nuvola|crystal|wiki/i;
+async function loadWiki(i){
   const s=await wd({action:"wbsearchentities",search:cleanTitle(i.title),language:"fr",uselang:"fr",type:"item",limit:10});
-  const hit=(s.search||[]).find(x=>/film|série télévisée|téléfilm|animation|documentaire|court métrage/i.test(x.description||""));
+  const hit=(s.search||[]).find(x=>FILMRE.test(x.description||""));
   if(!hit)return null;
   const e=(await wd({action:"wbgetentities",ids:hit.id,props:"claims|sitelinks"})).entities[hit.id];
   const c=e.claims||{};
   const ids=p=>(c[p]||[]).map(x=>x.mainsnak.datavalue&&x.mainsnak.datavalue.value&&x.mainsnak.datavalue.value.id).filter(Boolean);
   const val=p=>{const v=(c[p]||[])[0];return v&&v.mainsnak.datavalue?v.mainsnak.datavalue.value:null};
-  const dir=ids("P57").slice(0,3),cast=ids("P161").slice(0,8),all=[...dir,...cast],names={};
+  const dir=ids("P57").slice(0,3),cast=ids("P161").slice(0,10),gen=ids("P136").slice(0,5),all=[...dir,...cast,...gen],names={};
   if(all.length){const L=(await wd({action:"wbgetentities",ids:all.join("|"),props:"labels",languages:"fr|en"})).entities;all.forEach(q=>{const l=L[q]&&L[q].labels;names[q]=l?((l.fr||l.en||{}).value||""):""})}
   const d=val("P577"),du=val("P2047"),imdbId=val("P345")||"";
   let mins=0;if(du&&du.amount){mins=Math.round(+du.amount);if(/Q11574$/.test(du.unit||""))mins=Math.round(mins/60)}
-  let plot="";const t=e.sitelinks&&e.sitelinks.frwiki&&e.sitelinks.frwiki.title;
-  if(t){try{const r=await fetch("https://fr.wikipedia.org/api/rest_v1/page/summary/"+encodeURIComponent(t));if(r.ok)plot=(await r.json()).extract||""}catch(x){}}
-  const info={director:dir.map(q=>names[q]).filter(Boolean).join(", "),cast:cast.map(q=>names[q]).filter(Boolean),year:d&&d.time?d.time.slice(1,5):"",runtime:mins,imdbId,plot,imdb:""};
-  const k=omdbKey();
-  if(k&&imdbId){try{const j=await (await fetch("https://www.omdbapi.com/?i="+imdbId+"&apikey="+encodeURIComponent(k))).json();if(j.imdbRating&&j.imdbRating!=="N/A")info.imdb=j.imdbRating+"/10"}catch(x){}}
+  let plot="",poster="",photos=[];const t=e.sitelinks&&e.sitelinks.frwiki&&e.sitelinks.frwiki.title;
+  if(t){
+    try{const r=await fetch("https://fr.wikipedia.org/api/rest_v1/page/summary/"+encodeURIComponent(t));if(r.ok){const j=await r.json();plot=j.extract||"";poster=(j.originalimage&&j.originalimage.source)||""}}catch(x){}
+    try{const r=await fetch("https://fr.wikipedia.org/api/rest_v1/page/media-list/"+encodeURIComponent(t));if(r.ok){const j=await r.json();photos=(j.items||[]).filter(x=>x.type==="image"&&x.srcset&&x.srcset.length&&!BADIMG.test(x.title||"")).map(x=>{const u=x.srcset[x.srcset.length-1].src;return u.startsWith("//")?"https:"+u:u}).filter(u=>/\.(jpe?g|png)/i.test(u)&&u!==poster).slice(0,8)}}catch(x){}
+  }
+  const info={v:2,src:"wiki",director:dir.map(q=>names[q]).filter(Boolean).join(", "),cast:cast.map(q=>names[q]).filter(Boolean),year:d&&d.time?d.time.slice(1,5):"",runtime:mins,imdbId,plot,imdb:"",genres:gen.map(q=>names[q]).filter(Boolean),age:"",poster,photos};
+  await addImdb(info);
   return info;
 }
-function renderInfo(i,box){
-  box.innerHTML="";
-  const inf=i.info;
-  const row=(k,v)=>{if(!v)return;const p=document.createElement("p");p.className="note";p.style.margin="4px 0";const b=document.createElement("b");b.textContent=k+" : ";p.append(b,document.createTextNode(v));box.appendChild(p)};
-  if(inf){row("Note IMDb",inf.imdb||(omdbKey()?"non trouvée":"ajoute une clé OMDb dans les réglages"));row("Réalisateur",inf.director);row("Acteurs",(inf.cast||[]).join(", "));row("Durée",inf.runtime?inf.runtime+" min":"");row("Genres",i.genres);row("Synopsis",inf.plot)}
-  else row("Genres",i.genres);
-  let st=null;
-  if(!inf){st=document.createElement("div");st.className="note";st.textContent=i.noinfo?"Aucune fiche trouvée pour ce titre.":failed.has(i.id)?"Infos indisponibles (connexion ?).":"Chargement des infos…";box.appendChild(st)}
-  const links=document.createElement("div");links.className="bar";links.style.marginTop="8px";
-  const a=(t,u)=>{const e=document.createElement("a");e.className="btn ghost";e.style.cssText="flex:1;text-align:center;text-decoration:none";e.textContent=t;e.href=u;e.target="_blank";e.rel="noopener";return e};
-  const y=i.year||(inf&&inf.year)||"";
-  links.append(a("Bande-annonce","https://www.youtube.com/results?search_query="+encodeURIComponent(cleanTitle(i.title)+" "+y+" bande annonce")),a("IMDb",inf&&inf.imdbId?"https://www.imdb.com/title/"+inf.imdbId+"/":"https://www.imdb.com/find/?q="+encodeURIComponent(cleanTitle(i.title))));
-  box.appendChild(links);
-  if(!inf&&!i.noinfo&&!failed.has(i.id)&&!loading.has(i.id)){
-    loading.add(i.id);
-    loadInfo(i).then(r=>{if(r){i.info=r;if(!i.year&&r.year)i.year=r.year}else i.noinfo=1;save(i)}).catch(()=>failed.add(i.id)).finally(()=>{loading.delete(i.id);if($("detD").open)renderInfo(i,box);render()});
-  }
+async function loadInfo(i){
+  if(tmKey()){try{const r=await loadTmdb(i);if(r)return r}catch(e){}}
+  return loadWiki(i);
+}
+function applyInfo(i,r){
+  i.info=r;delete i.noinfo;
+  if(!i.year&&r.year)i.year=r.year;
+  if(!i.genres&&r.genres&&r.genres.length)i.genres=r.genres.join(", ");
+  if(!i.age&&r.age)i.age=r.age;
+  if(!i.cover&&r.poster)i.cover=r.poster;
+}
+const loading=new Set(),failed=new Set();
+const infoOK=i=>i.info&&i.info.v===2;
+const needInfo=i=>!infoOK(i)&&!i.noinfo&&!failed.has(i.id)&&!loading.has(i.id);
+async function fetchInfo(i){
+  if(loading.has(i.id))return;
+  loading.add(i.id);
+  try{const r=await loadInfo(i);if(r)applyInfo(i,r);else if(i.info)i.info.v=2;else i.noinfo=1;saveLocal()}
+  catch(e){failed.add(i.id)}
+  finally{loading.delete(i.id)}
+}
+let enrichRun=false;
+function enrichText(){const n=items.length,d=items.filter(i=>infoOK(i)||i.noinfo).length;return n?("Fiches chargées : "+d+" / "+n+(enrichRun?" (en cours…)":"")):""}
+async function enrichAll(){
+  if(enrichRun)return;enrichRun=true;let n=0;
+  try{
+    for(;;){
+      if(!navigator.onLine)break;
+      const i=items.find(needInfo);if(!i)break;
+      await fetchInfo(i);n++;
+      if(n%8===0){render();$("enrichSt").textContent=enrichText()}
+      await sleep(450);
+    }
+  }finally{enrichRun=false;render();$("enrichSt").textContent=enrichText()}
 }
 
-/* ---------- Affichage ---------- */
+/* ---------- Page d'un film ---------- */
+let curFilm=null,homeY=0,navIn=false;
+function openFilm(id){homeY=window.scrollY;navIn=true;location.hash="#film="+encodeURIComponent(id)}
+function goBack(){if(navIn&&history.length>1)history.back();else location.hash=""}
+function bigSrc(i){return (i.info&&i.info.poster)||(/^sp:/.test(i.cover||"")?"":i.cover)||""}
+function showFilm(i){
+  const box=$("film"),keep=curFilm===i.id?window.scrollY:0;
+  curFilm=i.id;box.innerHTML="";
+  const inf=i.info,y=i.year||(inf&&inf.year)||"";
+  const dups=dupsOf(i);
+  const cv=el("div",{class:"cover fcover "+i.format});fillCover(cv,i.cover,i.title);
+  const big=bigSrc(i);
+  if(big)cv.onclick=()=>lightbox([big,...(i.cover&&i.cover!==big&&!/^sp:/.test(i.cover)?[i.cover]:[]),...((inf&&inf.photos)||[])],0);
+  const fs=el("select",{"aria-label":"Format",onchange:()=>{i.format=fs.value;save(i);showFilm(i);render()}},Object.entries(FMT).map(([k,l])=>el("option",{value:k,selected:k===i.format},l)));
+  const sb=el("button",{class:"btn"+(i.seen?" ghost":""),onclick:()=>{i.seen=!i.seen;save(i);showFilm(i);render()}},i.seen?"Marquer à voir":"Marquer comme vu");
+  const st=el("div",{class:"stars"});
+  for(let n=1;n<=5;n++)st.appendChild(el("button",{"aria-label":n+" sur 5",class:n<=(i.rating||0)?"on":"",onclick:()=>{i.rating=i.rating===n?0:n;save(i);showFilm(i);render()}},"★"));
+  const pills=el("div",null,i.age?el("span",{class:"pill a"+(i.age==="tp"?"":i.age)},AGES[i.age]):null,dups.length?el("span",{class:"pill d"},"Doublon"):null);
+  const meta=[FMT[i.format],y,inf&&inf.runtime?inf.runtime+" min":"",i.genres].filter(Boolean).join(" · ");
+  const hero=el("div",{class:"hero"},cv,el("div",{class:"side"},el("h1",null,i.title),el("div",{class:"meta"},meta),pills,fs,sb,st));
+  box.append(el("div",{class:"fbar"},el("button",{class:"btn ghost",onclick:goBack},"← Retour"),el("div",{class:"ft"},i.title)),hero);
+  if(dups.length)box.appendChild(el("div",{class:"warn",style:"margin-top:12px"},"Tu as ce film en "+(dups.length+1)+" exemplaires : "+[i,...dups].map(x=>FMT[x.format]).join(", ")+". ",...dups.map(d=>el("button",{class:"chip link",style:"margin-left:6px",onclick:()=>openFilm(d.id)},"Voir celui en "+FMT[d.format]))));
+  /* listes */
+  const chips=el("div",{class:"chips"});
+  alive().forEach(l=>chips.appendChild(el("button",{class:"chip","aria-pressed":(i.lists||[]).includes(l.id),onclick:()=>{const a=new Set(i.lists||[]);a.has(l.id)?a.delete(l.id):a.add(l.id);i.lists=[...a];save(i);showFilm(i);render()}},l.name)));
+  chips.appendChild(el("button",{class:"chip link",onclick:()=>{const n=(prompt("Nom de la nouvelle liste ?")||"").trim();if(!n)return;const l=newList(n);if(l){i.lists=[...(i.lists||[]),l.id];save(i);showFilm(i);render()}}},"＋ Nouvelle liste"));
+  box.appendChild(el("div",{class:"sec"},el("h3",null,"Mes listes"),chips));
+  /* classification */
+  const as=el("select",{"aria-label":"Classification",onchange:()=>{i.age=as.value;save(i);showFilm(i);render()}},el("option",{value:""},"Non renseignée"),Object.entries(AGES).map(([k,l])=>el("option",{value:k,selected:k===i.age},l)));
+  box.appendChild(el("div",{class:"sec"},el("h3",null,"Classification"),as,el("p",{class:"note"},"Remplie automatiquement avec une clé TMDB, sinon à choisir ici.")));
+  box.appendChild(el("div",{class:"sec",id:"fInfo"}));
+  box.appendChild(el("div",{class:"sec",id:"fPhotos"}));
+  box.appendChild(el("div",{class:"sec",id:"fRecs"}));
+  /* gestion */
+  const pickIn=(text,cap)=>{const fi=el("input",{type:"file",accept:"image/*",hidden:true});if(cap)fi.setAttribute("capture","environment");fi.onchange=async()=>{if(fi.files[0]){try{i.cover=await thumb(fi.files[0]);save(i);showFilm(i);render()}catch(e){alert("Photo illisible.")}}};return el("label",{class:"btn ghost",style:"flex:1;text-align:center"},text,fi)};
+  box.appendChild(el("div",{class:"sec stack"},el("div",{class:"note"},"Changer la jaquette :"),el("div",{class:"bar",style:"margin:0"},pickIn("Prendre une photo",true),pickIn("Ma photothèque",false)),
+    el("button",{class:"btn danger",onclick:()=>{if(confirm("Supprimer « "+i.title+" » ?")){items=items.filter(z=>z.id!==i.id);del[i.id]=Date.now();save();goBack();render()}}},"Supprimer ce disque")));
+  fillDyn(i);
+  if(needInfo(i))fetchInfo(i).then(()=>{if(curFilm===i.id){const it=items.find(z=>z.id===i.id);if(it){showFilm(it)}}render()});
+  window.scrollTo(0,keep);
+}
+function gotoSearch(t){$("q").value=t;navIn=false;location.hash="";}
+function fillDyn(i){
+  const inf=i.info,box=$("fInfo");if(!box)return;
+  box.innerHTML="";
+  const row=(k,v)=>{if(!v)return;box.appendChild(el("p",{class:"note",style:"margin:4px 0"},el("b",null,k+" : "),v))};
+  const y=i.year||(inf&&inf.year)||"";
+  if(inf){
+    row("Note IMDb",inf.imdb||(omdbKey()?"non trouvée":"ajoute une clé OMDb dans les réglages"));
+    if(inf.director)box.appendChild(el("div",{style:"margin:8px 0"},el("div",{class:"note"},"Réalisation"),el("div",{class:"chips"},inf.director.split(", ").map(n=>el("button",{class:"chip link",onclick:()=>gotoSearch(n)},n)))));
+    if((inf.cast||[]).length)box.appendChild(el("div",{style:"margin:8px 0"},el("div",{class:"note"},"Distribution"),el("div",{class:"chips"},inf.cast.map(n=>el("button",{class:"chip link",onclick:()=>gotoSearch(n)},n)))));
+    if(inf.plot)box.appendChild(el("p",{style:"margin:10px 0"},inf.plot));
+  }else{
+    box.appendChild(el("div",{class:"note"},i.noinfo?"Aucune fiche trouvée pour ce titre.":failed.has(i.id)?"Infos indisponibles (connexion ?).":"Chargement des infos…"));
+    if(failed.has(i.id)||i.noinfo)box.appendChild(el("button",{class:"btn ghost",style:"margin-top:8px",onclick:()=>{failed.delete(i.id);delete i.noinfo;showFilm(i)}},"Réessayer"));
+  }
+  box.appendChild(el("div",{class:"bar",style:"margin-top:8px"},
+    el("a",{class:"btn ghost",style:"flex:1;text-align:center;text-decoration:none",href:"https://www.youtube.com/results?search_query="+encodeURIComponent(cleanTitle(i.title)+" "+y+" bande annonce"),target:"_blank",rel:"noopener"},"Bande-annonce"),
+    el("a",{class:"btn ghost",style:"flex:1;text-align:center;text-decoration:none",href:inf&&inf.imdbId?"https://www.imdb.com/title/"+inf.imdbId+"/":"https://www.imdb.com/find/?q="+encodeURIComponent(cleanTitle(i.title)),target:"_blank",rel:"noopener"},"IMDb")));
+  /* photos */
+  const pb=$("fPhotos");pb.innerHTML="";
+  const pics=[...(inf&&inf.poster?[inf.poster]:[]),...((inf&&inf.photos)||[])];
+  if(pics.length){pb.appendChild(el("h3",null,"Photos"));const g=el("div",{class:"gal"});pics.forEach((u,n)=>g.appendChild(el("img",{src:u,alt:"Photo du film "+(n+1),loading:"lazy",onclick:()=>lightbox(pics,n),onerror:function(){this.remove()}})));pb.appendChild(g)}
+  else pb.hidden=true;
+  fillRecs(i);
+}
+/* recommandations */
+function localRecs(i){
+  const f=i.info||{},dir=new Set((f.director||"").split(", ").filter(Boolean)),cast=new Set(f.cast||[]),gen=new Set((i.genres||"").split(",").map(x=>x.trim()).filter(Boolean));
+  return items.filter(x=>x.id!==i.id&&nkey(x.title)!==nkey(i.title)).map(x=>{
+    const g=x.info||{};let s=0;
+    (g.director||"").split(", ").forEach(n=>{if(n&&dir.has(n))s+=3});
+    (g.cast||[]).forEach(n=>{if(cast.has(n))s+=2});
+    (x.genres||"").split(",").map(z=>z.trim()).forEach(n=>{if(n&&gen.has(n))s+=1});
+    return {x,s}}).filter(r=>r.s>0).sort((a,b)=>b.s-a.s||(b.x.rating||0)-(a.x.rating||0)).slice(0,10).map(r=>r.x);
+}
+async function fillRecs(i){
+  const rb=$("fRecs");if(!rb)return;rb.innerHTML="";rb.hidden=false;
+  const loc=localRecs(i);
+  rb.appendChild(el("h3",null,"Dans ta collection"));
+  if(loc.length){const row=el("div",{class:"rec"});loc.forEach(x=>{const c=el("div",{class:"cover "+x.format});fillCover(c,x.cover,x.title);row.appendChild(el("button",{class:"ri",onclick:()=>openFilm(x.id)},c,el("div",{class:"rt"},x.title),el("div",{class:"m"},FMT[x.format])))});rb.appendChild(row)}
+  else rb.appendChild(el("p",{class:"note"},"Pas encore de film proche dans ta collection (même réalisateur, acteurs ou genres). Les suggestions s'enrichissent à mesure que les fiches se chargent."));
+  const inf=i.info;
+  if(tmKey()&&inf&&inf.tmdbId){
+    const slot=el("div",null,el("p",{class:"note"},"Chargement des suggestions…"));rb.appendChild(el("div",{style:"margin-top:12px"},el("h3",null,"À découvrir"),slot));
+    try{
+      const j=await tm("/movie/"+inf.tmdbId+"/recommendations",{});
+      if(curFilm!==i.id)return;
+      const have=new Set(items.map(x=>nkey(x.title)));
+      const rs=(j.results||[]).filter(r=>!have.has(nkey(r.title))).slice(0,12);
+      slot.innerHTML="";
+      if(!rs.length){slot.appendChild(el("p",{class:"note"},"Aucune suggestion."));return}
+      const row=el("div",{class:"rec"});
+      rs.forEach(r=>{const c=el("div",{class:"cover"});fillCover(c,r.poster_path?TMG+"w185"+r.poster_path:"",r.title);const yy=(r.release_date||"").slice(0,4);
+        row.appendChild(el("div",{class:"ri"},c,el("div",{class:"rt"},r.title),el("div",{class:"m"},yy),el("button",{class:"chip",style:"margin-top:4px",onclick:()=>openAdd({title:r.title,year:yy,cover:r.poster_path?TMG+"w500"+r.poster_path:""})},"＋ Ajouter")))});
+      slot.appendChild(row);
+    }catch(e){slot.innerHTML="";slot.appendChild(el("p",{class:"note"},"Suggestions indisponibles (connexion ou clé ?)."))}
+  }else if(!tmKey()){
+    rb.appendChild(el("p",{class:"note",style:"margin-top:10px"},"Pour des suggestions de films que tu n'as pas encore, ajoute une clé TMDB dans les réglages."));
+  }
+}
+/* visionneuse de photos */
+let lbList=[],lbN=0;
+function lightbox(l,n){lbList=l.filter(Boolean);lbN=n;lbShow();if(!$("lightD").open)$("lightD").showModal()}
+function lbShow(){$("lImg").src=lbList[lbN]||"";$("lCnt").textContent=lbList.length?(lbN+1)+" / "+lbList.length:"";$("lPrev").hidden=$("lNext").hidden=lbList.length<2}
+$("lPrev").onclick=()=>{lbN=(lbN-1+lbList.length)%lbList.length;lbShow()};
+$("lNext").onclick=()=>{lbN=(lbN+1)%lbList.length;lbShow()};
+$("lClose").onclick=()=>$("lightD").close();
+
+/* ---------- Listes ---------- */
+function newList(name){
+  if(alive().some(l=>nrm(l.name)===nrm(name))){alert("Cette liste existe déjà.");return null}
+  const l={id:nid(),name,u:Date.now()};lists.push(l);saveLocal();queueSync();return l;
+}
+function openLists(){
+  const rows=$("listRows");rows.innerHTML="";
+  const al=alive();
+  if(!al.length)rows.appendChild(el("p",{class:"note"},"Aucune liste pour l'instant."));
+  al.forEach(l=>{
+    const n=items.filter(i=>(i.lists||[]).includes(l.id)).length;
+    const inp=el("input",{value:l.name,maxlength:40,"aria-label":"Nom de la liste",onchange:()=>{const v=inp.value.trim();if(v){l.name=v;l.u=Date.now();saveLocal();queueSync();render()}else inp.value=l.name}});
+    rows.appendChild(el("div",{class:"lrow"},inp,el("span",{class:"m"},n+" film"+(n>1?"s":"")),
+      el("button",{class:"btn ghost",onclick:()=>{$("list").value=l.id;$("listD").close();navIn=false;if(location.hash)location.hash="";else render()}},"Voir"),
+      el("button",{class:"btn danger",onclick:()=>{if(confirm("Supprimer la liste « "+l.name+" » ? Les films restent dans ta collection.")){l.d=1;l.u=Date.now();items.forEach(i=>{if((i.lists||[]).includes(l.id)){i.lists=i.lists.filter(z=>z!==l.id);i.u=Date.now()}});saveLocal();queueSync();openLists();render()}}},"✕")));
+  });
+  if(!$("listD").open)$("listD").showModal();
+}
+$("listsBtn").onclick=openLists;$("listX").onclick=()=>$("listD").close();
+$("newListGo").onclick=()=>{const v=$("newList").value.trim();if(!v){$("newList").focus();return}if(newList(v)){$("newList").value="";openLists();render()}};
+$("newList").addEventListener("keydown",e=>{if(e.key==="Enter")$("newListGo").click()});
+
+/* ---------- Affichage de la collection ---------- */
 let view="grid";try{view=localStorage.getItem("movy-view")||"grid"}catch(e){}
-const yr=i=>parseInt(i.year||(i.info&&i.info.year))||0;
-const imdbN=i=>parseFloat(i.info&&i.info.imdb)||0;
 const SORTS={az:(a,b)=>a.title.localeCompare(b.title,"fr"),za:(a,b)=>b.title.localeCompare(a.title,"fr"),yd:(a,b)=>yr(b)-yr(a),ya:(a,b)=>(yr(a)||9999)-(yr(b)||9999),rate:(a,b)=>(b.rating||0)-(a.rating||0),imdb:(a,b)=>imdbN(b)-imdbN(a),new:(a,b)=>(b.u||0)-(a.u||0)};
+function hay(i){const f=i.info||{};return nrm([i.title,i.year||f.year,f.director,(f.cast||[]).join(" "),i.genres,FMT[i.format],AGES[i.age]||"",(i.lists||[]).map(listName).join(" ")].join(" "))}
+function fillSelect(s,first,opts,cur){s.innerHTML="";s.appendChild(el("option",{value:""},first));opts.forEach(([v,l])=>s.appendChild(el("option",{value:v},l)));s.value=opts.some(o=>o[0]===cur)?cur:""}
 function render(){
+  computeDups();
   $("tabs").innerHTML="";
   [["tous","Tout"],["dvd","DVD"],["br","Blu-ray"],["uhd","4K"],["grave","Gravés"],["mkv","MKV"]].forEach(([k,l])=>{
-    const b=document.createElement("button");b.className="tab";b.textContent=l;b.setAttribute("aria-pressed",filter===k);
-    b.onclick=()=>{filter=k;render()};$("tabs").appendChild(b);
+    const b=el("button",{class:"tab","aria-pressed":filter===k,onclick:()=>{filter=k;render()}},l);$("tabs").appendChild(b);
   });
-  const gs=$("genre"),cur=gs.value,set=new Set();
-  items.forEach(i=>(i.genres||"").split(",").forEach(x=>{x=x.trim();if(x)set.add(x)}));
-  gs.innerHTML='<option value="">Tous genres</option>';
-  [...set].sort((a,b)=>a.localeCompare(b,"fr")).forEach(x=>{const o=document.createElement("option");o.value=x;o.textContent=x;gs.appendChild(o)});
-  gs.value=set.has(cur)?cur:"";
+  const set=new Set(),decs=new Set();
+  items.forEach(i=>{(i.genres||"").split(",").forEach(x=>{x=x.trim();if(x)set.add(x)});const y=yr(i);if(y)decs.add(Math.floor(y/10)*10)});
+  fillSelect($("genre"),"Tous genres",[...set].sort((a,b)=>a.localeCompare(b,"fr")).map(x=>[x,x]),$("genre").value);
+  fillSelect($("decade"),"Toutes années",[...decs].sort((a,b)=>b-a).map(d=>[String(d),"Années "+d]),$("decade").value);
+  fillSelect($("list"),"Toutes les listes",alive().map(l=>[l.id,l.name+" ("+items.filter(i=>(i.lists||[]).includes(l.id)).length+")"]),$("list").value);
   $("view").textContent=view==="grid"?"☰ Liste":"▦ Grille";
-  const q=$("q").value.trim().toLowerCase(),sv=$("seen").value,gv=gs.value;
-  const shown=items.filter(i=>(filter==="tous"||i.format===filter)&&(!q||i.title.toLowerCase().includes(q))&&(!sv||(sv==="yes")===!!i.seen)&&(!gv||(i.genres||"").split(",").map(x=>x.trim()).includes(gv)));
+  const toks=nrm($("q").value.trim()).split(/\s+/).filter(Boolean),sv=$("seen").value,gv=$("genre").value,av=$("age").value,dv=$("decade").value,lv=$("list").value,dOnly=$("dupOnly").checked;
+  const nf=[sv,av,gv,dv,dOnly?"1":""].filter(Boolean).length;
+  $("fbtn").textContent=nf?"Filtres ("+nf+")":"Filtres";
+  const shown=items.filter(i=>{
+    if(filter!=="tous"&&i.format!==filter)return false;
+    if(toks.length){const h=hay(i);if(!toks.every(t=>h.includes(t)))return false}
+    if(sv&&(sv==="yes")!==!!i.seen)return false;
+    if(av&&(av==="none"?!!i.age:i.age!==av))return false;
+    if(gv&&!(i.genres||"").split(",").map(x=>x.trim()).includes(gv))return false;
+    if(dv){const y=yr(i);if(!y||Math.floor(y/10)*10!==+dv)return false}
+    if(lv&&!(i.lists||[]).includes(lv))return false;
+    if(dOnly&&!dupIds.has(i.id))return false;
+    return true;
+  });
   shown.sort(SORTS[$("sort").value]||SORTS.az);
-  $("stats").textContent=shown.length+" disque"+(shown.length>1?"s":"")+(items.length!==shown.length?" sur "+items.length:"");
+  const nd=items.filter(i=>dupIds.has(i.id)).length;
+  $("stats").textContent=shown.length+" disque"+(shown.length>1?"s":"")+(items.length!==shown.length?" sur "+items.length:"")+(nd?" · "+nd+" en doublon":"")+(enrichRun?" · fiches en cours de chargement…":"");
   const g=$("grid");g.innerHTML="";g.className=view==="grid"?"grid":"list";
   if(!shown.length){g.innerHTML='<div class="empty">'+(items.length?"Aucun disque ne correspond.":"Ta collection est vide. Appuie sur « Ajouter un disque » pour commencer.")+"</div>";return}
   shown.forEach(i=>{
-    const cv=document.createElement("div");cv.className="cover";fillCover(cv,i.cover,i.title);
+    const cv=el("div",{class:"cover"});fillCover(cv,i.cover,i.title);
     if(view==="grid"){
-      const b=document.createElement("button");b.className="disc "+i.format+(i.seen?" seen":"");b.setAttribute("aria-label",i.title+", "+FMT[i.format]);
-      const tag=document.createElement("span");tag.className="tag";tag.textContent=FMT[i.format];
-      b.append(cv,tag);b.onclick=()=>detail(i);g.appendChild(b);
+      const b=el("button",{class:"disc "+i.format+(i.seen?" seen":""),"aria-label":i.title+", "+FMT[i.format]+(dupIds.has(i.id)?", doublon":""),onclick:()=>openFilm(i.id)},cv,el("span",{class:"tag"},FMT[i.format]),
+        i.age?el("span",{class:"age"+(i.age==="tp"?"":" a"+i.age)},AGES_S[i.age]):null,dupIds.has(i.id)?el("span",{class:"dup"},"Doublon"):null);
+      g.appendChild(b);
     }else{
-      const b=document.createElement("button");b.className="li "+i.format+(i.seen?" seen":"");
-      const tx=document.createElement("div");tx.className="tx";
-      const t=document.createElement("div");t.className="t";t.textContent=i.title;
-      const m=document.createElement("div");m.className="m";
-      m.textContent=[FMT[i.format],yr(i)||"",imdbN(i)?"IMDb "+i.info.imdb:"",i.genres||""].filter(Boolean).join(" · ");
-      tx.append(t,m);b.append(cv,tx);b.onclick=()=>detail(i);g.appendChild(b);
+      const m=[FMT[i.format],yr(i)||"",i.age?AGES_S[i.age]:"",imdbN(i)?"IMDb "+i.info.imdb:"",i.genres||"",dupIds.has(i.id)?"Doublon":""].filter(Boolean).join(" · ");
+      g.appendChild(el("button",{class:"li "+i.format+(i.seen?" seen":""),onclick:()=>openFilm(i.id)},cv,el("div",{class:"tx"},el("div",{class:"t"},i.title),el("div",{class:"m"},m))));
     }
   });
 }
-$("q").addEventListener("input",render);$("seen").addEventListener("change",render);
-$("sort").addEventListener("change",render);$("genre").addEventListener("change",render);
+["seen","age","genre","decade","list","sort"].forEach(id=>$(id).addEventListener("change",render));
+$("dupOnly").addEventListener("change",render);$("q").addEventListener("input",render);
+$("fbtn").onclick=()=>{$("fpanel").hidden=!$("fpanel").hidden};
+$("fclear").onclick=()=>{["seen","age","genre","decade"].forEach(id=>$(id).value="");$("dupOnly").checked=false;render()};
 $("view").onclick=()=>{view=view==="grid"?"list":"grid";try{localStorage.setItem("movy-view",view)}catch(e){}render()};
-$("gear").onclick=()=>$("setD").showModal();$("setX").onclick=()=>$("setD").close();
-$("omdb").value=omdbKey();
-$("omdbSave").onclick=()=>{try{localStorage.setItem(OK,$("omdb").value.trim())}catch(e){}$("omdbSave").textContent="Enregistrée";setTimeout(()=>$("omdbSave").textContent="Enregistrer",1500)};
+
+/* ---------- Navigation ---------- */
+function route(){
+  const m=/^#film=(.+)$/.exec(location.hash);
+  const i=m&&items.find(x=>x.id===decodeURIComponent(m[1]));
+  if(i){$("home").hidden=true;$("fab").hidden=true;$("film").hidden=false;showFilm(i)}
+  else{curFilm=null;$("film").hidden=true;$("home").hidden=false;$("fab").hidden=false;render();window.scrollTo(0,homeY);homeY=0}
+}
+window.addEventListener("hashchange",route);
+
+/* ---------- Réglages ---------- */
+$("gear").onclick=()=>{$("enrichSt").textContent=enrichText();$("setD").showModal()};$("setX").onclick=()=>$("setD").close();
+$("omdb").value=omdbKey();$("tmdb").value=tmKey();
+const saveKey=(btn,k,inp)=>{try{localStorage.setItem(k,inp.value.trim())}catch(e){}btn.textContent="Enregistrée";setTimeout(()=>btn.textContent="Enregistrer",1500)};
+$("omdbSave").onclick=()=>saveKey($("omdbSave"),OK,$("omdb"));
+$("tmdbSave").onclick=()=>{saveKey($("tmdbSave"),TK,$("tmdb"));if(tmKey()&&confirm("Recharger maintenant toutes les fiches avec TMDB (photos HD, classification, recommandations) ?"))$("reload").click()};
+$("reload").onclick=()=>{
+  if(!confirm("Recharger toutes les fiches ? Tes notes, listes, vus et jaquettes sont conservés."))return;
+  items.forEach(i=>{i.info=null;delete i.noinfo});failed.clear();saveLocal();render();enrichAll();$("enrichSt").textContent=enrichText();
+};
 
 /* ---------- Synchronisation (Gist privé) ---------- */
 function setSt(t){$("syncSt").textContent=t}
@@ -362,7 +795,7 @@ async function findOrCreate(){
   if(!r.ok)throw new Error("GitHub est indisponible.");
   const g=(await r.json()).find(x=>x.files&&x.files["dvdtheque.json"]);
   if(g)return g.id;
-  const c=await gh("/gists",{method:"POST",body:JSON.stringify({description:"dvdtheque",public:false,files:{"dvdtheque.json":{content:JSON.stringify({items,del})}}})});
+  const c=await gh("/gists",{method:"POST",body:JSON.stringify({description:"dvdtheque",public:false,files:{"dvdtheque.json":{content:payload()}}})});
   if(!c.ok)throw new Error("Création impossible. Le jeton doit avoir l’autorisation « gist ».");
   return (await c.json()).id;
 }
@@ -372,19 +805,26 @@ async function pull(){
   let txt=f.content;if(f.truncated)txt=await (await fetch(f.raw_url)).text();
   return JSON.parse(txt||"{}");
 }
+function mergeLists(rl){
+  if(!Array.isArray(rl))return;
+  const m=new Map(lists.map(l=>[l.id,l]));
+  rl.forEach(x=>{if(!x||!x.id)return;const l=m.get(x.id);if(!l||(x.u||0)>(l.u||0))m.set(x.id,x)});
+  lists=[...m.values()];
+}
 function merge(rem){
   const ri=Array.isArray(rem.items)?rem.items:[],rd=rem.del&&typeof rem.del==="object"?rem.del:{};
   Object.entries(rd).forEach(([id,t])=>{if(!(del[id]>=t))del[id]=t});
   const map=new Map(items.map(i=>[i.id,i]));
   ri.forEach(x=>{if(!x||!x.id||!x.title)return;const l=map.get(x.id);if(!l||(x.u||0)>(l.u||0))map.set(x.id,x)});
   items=[...map.values()].filter(i=>!(del[i.id]>(i.u||0)));
+  mergeLists(rem.lists);
 }
 async function sync(){
   if(!cfg.tok||!cfg.gid||syncing)return;
   syncing=true;setSt("Synchronisation en cours…");
   try{
-    merge(await pull());saveLocal();render();
-    const w=await gh("/gists/"+cfg.gid,{method:"PATCH",body:JSON.stringify({files:{"dvdtheque.json":{content:JSON.stringify({items,del})}}})});
+    merge(await pull());saveLocal();if(curFilm===null)render();
+    const w=await gh("/gists/"+cfg.gid,{method:"PATCH",body:JSON.stringify({files:{"dvdtheque.json":{content:payload()}}})});
     if(!w.ok)throw new Error("Écriture impossible.");
     setSt("Synchronisé à "+new Date().toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})+".");
   }catch(e){setSt((e&&e.message)||"Échec de la synchronisation. Vérifie ta connexion.")}
@@ -403,14 +843,20 @@ document.addEventListener("visibilitychange",()=>{if(!document.hidden)sync()});
 if(cfg.tok&&cfg.gid){setSt("Synchronisation activée.");sync()}
 
 /* ---------- Export / import ---------- */
-$("exp").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(items,null,2)],{type:"application/json"}));a.download="dvdtheque.json";a.click()};
+$("exp").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify({items,lists},null,2)],{type:"application/json"}));a.download="dvdtheque.json";a.click()};
 $("impBtn").onclick=()=>$("imp").click();
 $("imp").onchange=async e=>{
-  try{const d=JSON.parse(await e.target.files[0].text());
-    if(Array.isArray(d)){d.forEach(x=>{if(x&&x.title&&!items.some(z=>z.id===x.id))items.push({id:x.id||nid(),title:x.title,year:x.year||"",cover:x.cover||"",overview:x.overview||"",format:FMT[x.format]?x.format:"dvd",seen:!!x.seen||x.status==="termine",rating:x.rating||0,genres:x.genres||"",num:x.num||0,auto:x.auto||0,u:Date.now()})});save();render()}
+  try{
+    const raw=JSON.parse(await e.target.files[0].text());
+    const d=Array.isArray(raw)?raw:(raw&&Array.isArray(raw.items)?raw.items:null);
+    if(!d)throw new Error("format");
+    if(raw&&!Array.isArray(raw)&&Array.isArray(raw.lists))mergeLists(raw.lists);
+    d.forEach(x=>{if(x&&x.title&&!items.some(z=>z.id===x.id))items.push({id:x.id||nid(),title:x.title,year:x.year||"",cover:x.cover||"",overview:x.overview||"",format:FMT[x.format]?x.format:"dvd",seen:!!x.seen||x.status==="termine",rating:x.rating||0,genres:x.genres||"",age:x.age||"",code:x.code||"",lists:Array.isArray(x.lists)?x.lists:[],info:x.info||null,num:x.num||0,auto:x.auto||0,u:Date.now()})});
+    save();render();enrichAll();
   }catch(err){alert("Fichier illisible.")}
 };
-render();
+route();
+setTimeout(enrichAll,2500);
 </script>
 </body>
 </html>
