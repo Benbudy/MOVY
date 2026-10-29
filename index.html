@@ -26,8 +26,8 @@ input,select{background:var(--card);border:1px solid var(--line);border-radius:1
 .btn{background:var(--acc);color:#fff;border:0;border-radius:10px;padding:11px 16px;font-weight:600;cursor:pointer}
 .btn.ghost{background:none;color:var(--ink);border:1px solid var(--line)}
 .btn.danger{background:none;color:#e03131;border:1px solid var(--line)}
-.tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:10px;padding-bottom:2px}
-.tab{flex:none;border:1px solid var(--line);background:var(--card);padding:7px 14px;border-radius:99px;cursor:pointer;font-weight:600;font-size:.85rem}
+.tabs{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+.tab{flex:1 1 auto;border:1px solid var(--line);background:var(--card);padding:6px 8px;border-radius:99px;cursor:pointer;font-weight:600;font-size:.78rem;text-align:center}
 .tab[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .filters{display:grid;grid-template-columns:2fr 1fr;gap:8px;margin-bottom:10px}
 .stats{color:var(--mute);font-size:.82rem;margin-bottom:10px}
@@ -65,6 +65,14 @@ dialog h2{margin:0 0 10px;font:700 1.15rem "Iowan Old Style",Georgia,serif}
 details{margin-top:24px}summary{cursor:pointer;font-weight:600}
 #vid{width:100%;aspect-ratio:4/3;object-fit:cover;background:#000;border-radius:10px;margin:8px 0}
 .st{font-size:.85rem;margin:8px 0}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.gear{font-size:1.3rem;padding:4px 12px;line-height:1.2}
+.filters2{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:10px}
+.list{display:grid;gap:8px}
+.li{display:flex;gap:10px;align-items:center;text-align:left;background:var(--card);color:var(--ink);font:inherit;border:1px solid var(--line);border-left:4px solid var(--c);border-radius:10px;padding:8px;cursor:pointer}
+.li .cover{width:48px;flex:none;border-top:0;box-shadow:none;border-radius:4px}
+.li .tx{min-width:0}.li .t{font-weight:700}
+.li.seen{opacity:.7}
 .picks{display:flex;gap:8px;overflow-x:auto}
 .picks img{height:120px;border-radius:6px;border:3px solid transparent;cursor:pointer;flex:none}
 .picks img.on{border-color:var(--acc)}
@@ -72,30 +80,22 @@ details{margin-top:24px}summary{cursor:pointer;font-weight:600}
 </head>
 <body>
 <main>
-<h1>MOVY</h1>
-<p class="sub">Mes DVD, Blu-ray et 4K, avec leurs jaquettes.</p>
+<div class="top"><div><h1>MOVY</h1>
+<p class="sub">Ma collection, avec ses jaquettes.</p></div><button class="btn ghost gear" id="gear" aria-label="Réglages">⚙</button></div>
 <div class="tabs" id="tabs"></div>
 <div class="filters">
   <input id="q" type="search" placeholder="Filtrer mes disques…" aria-label="Filtrer">
   <select id="seen" aria-label="Statut"><option value="">Tous</option><option value="no">À voir</option><option value="yes">Déjà vus</option></select>
 </div>
+<div class="filters2">
+  <select id="sort" aria-label="Trier"><option value="az">Titre A → Z</option><option value="za">Titre Z → A</option><option value="yd">Année (récent)</option><option value="ya">Année (ancien)</option><option value="rate">Ma note</option><option value="imdb">Note IMDb</option><option value="new">Ajoutés récemment</option></select>
+  <select id="genre" aria-label="Genre"><option value="">Tous genres</option></select>
+  <button class="btn ghost" id="view">☰ Liste</button>
+</div>
 <div class="stats" id="stats"></div>
 <div class="grid" id="grid"></div>
 
-<details>
-  <summary>Réglages, synchronisation et sauvegarde</summary>
-  <div class="sec">
-    <h3>Synchronisation entre appareils</h3>
-    <p class="note">Ta liste est stockée dans un Gist privé de ton compte GitHub. <a href="https://github.com/settings/tokens/new?scopes=gist&description=dvdtheque" target="_blank" rel="noopener">Crée un jeton avec la seule autorisation « gist »</a>, puis colle le même jeton sur chaque appareil.</p>
-    <div class="bar"><input id="tok" type="password" placeholder="Jeton GitHub" autocomplete="off"><button class="btn" id="syncOn">Activer</button></div>
-    <div class="bar"><button class="btn ghost" id="syncNow">Synchroniser maintenant</button><button class="btn ghost" id="syncOff">Désactiver</button></div>
-    <div class="st note" id="syncSt"></div>
-  </div>
-  <div class="sec">
-    <h3>Sauvegarde</h3>
-    <div class="bar"><button class="btn ghost" id="exp">Exporter (JSON)</button><button class="btn ghost" id="impBtn">Importer</button><input type="file" id="imp" accept="application/json" hidden></div>
-  </div>
-</details>
+
 </main>
 
 <button class="btn fab" id="fab">＋ Ajouter un disque</button>
@@ -124,6 +124,29 @@ details{margin-top:24px}summary{cursor:pointer;font-weight:600}
   <div class="bar" style="margin-top:10px"><input id="code" inputmode="numeric" placeholder="Ou saisis les chiffres du code" aria-label="Code-barre"><button class="btn" id="codeGo">OK</button></div>
 </dialog>
 
+<dialog id="setD">
+  <button class="btn ghost close" id="setX">Fermer</button>
+  <h2>Réglages</h2>
+  <div class="sec">
+    <h3>Note IMDb (facultatif)</h3>
+    <p class="note">Clé gratuite sur omdbapi.com (« API Key », reçue par e-mail). Sans clé, tout marche sauf la note IMDb.</p>
+    <div class="bar"><input id="omdb" type="password" placeholder="Clé OMDb" autocomplete="off"><button class="btn" id="omdbSave">Enregistrer</button></div>
+  </div>
+
+  <div class="sec">
+    <h3>Synchronisation entre appareils</h3>
+    <p class="note">Ta liste est stockée dans un Gist privé de ton compte GitHub. <a href="https://github.com/settings/tokens/new?scopes=gist&description=dvdtheque" target="_blank" rel="noopener">Crée un jeton avec la seule autorisation « gist »</a>, puis colle le même jeton sur chaque appareil.</p>
+    <div class="bar"><input id="tok" type="password" placeholder="Jeton GitHub" autocomplete="off"><button class="btn" id="syncOn">Activer</button></div>
+    <div class="bar"><button class="btn ghost" id="syncNow">Synchroniser maintenant</button><button class="btn ghost" id="syncOff">Désactiver</button></div>
+    <div class="st note" id="syncSt"></div>
+  </div>
+  <div class="sec">
+    <h3>Sauvegarde</h3>
+    <div class="bar"><button class="btn ghost" id="exp">Exporter (JSON)</button><button class="btn ghost" id="impBtn">Importer</button><input type="file" id="imp" accept="application/json" hidden></div>
+  </div>
+
+</dialog>
+
 <dialog id="detD"></dialog>
 
 <script>
@@ -139,6 +162,13 @@ try{
 try{cfg=JSON.parse(localStorage.getItem(SK)||"{}")}catch(e){cfg={}}
 function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify({items,del}))}catch(e){alert("Stockage plein. Exporte ta bibliothèque en JSON pour la sauvegarder.")}}
 function save(i){if(i)i.u=Date.now();saveLocal();queueSync()}
+const OK="omdb-key";
+function omdbKey(){try{return localStorage.getItem(OK)||""}catch(e){return ""}}
+function cleanTitle(t){
+  return t.replace(/\(.*?\)|\[.*?\]/g," ")
+    .replace(/\s*[:\-–]?\s*(l['’]int[ée]grale.*|int[ée]grale.*|the complete series.*|saisons?\s*\d.*|season\s*\d.*|coffret.*|édition.*|collector.*)$/i," ")
+    .replace(/\s+/g," ").trim();
+}
 const nid=()=>Date.now()+"-"+Math.random().toString(36).slice(2,6);
 
 function img(src,alt){const i=document.createElement("img");i.src=src;i.alt=alt;i.loading="lazy";return i}
@@ -182,7 +212,7 @@ async function startScan(){
       zx=new ZXing.BrowserMultiFormatReader();
       await zx.decodeFromConstraints({video:{facingMode:"environment"}},v,res=>{if(res&&scanning)onCode(res.getText())});
     }
-  }catch(e){$("scanMsg").textContent="Caméra inaccessible. Autorise-la dans le navigateur ou saisis les chiffres du code ci-dessous."}
+  }catch(e){$("scanMsg").textContent="Caméra inaccessible ("+((e&&e.name)||"erreur")+"). Autorise la caméra pour ce site, ou saisis les chiffres du code ci-dessous."}
 }
 function stopScan(){scanning=false;if(zx){try{zx.reset()}catch(e){}zx=null}if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}$("vid").srcObject=null}
 $("scanD").addEventListener("close",stopScan);
@@ -192,19 +222,20 @@ $("codeGo").onclick=()=>{const c=$("code").value.replace(/\D/g,"");if(c.length>=
 async function onCode(code){
   stopScan();if($("scanD").open)$("scanD").close();
   const out=$("res"),pk=$("pick");pk.innerHTML="";pendingCover="";
+  const fail=m=>{out.textContent=m+" Code lu : "+code+". Tape le titre ci-dessous. ";const a=document.createElement("a");a.href="https://www.google.com/search?q="+encodeURIComponent(code+" dvd blu-ray");a.target="_blank";a.rel="noopener";a.textContent="Chercher ce code sur Google";out.appendChild(a)};
   out.textContent="Code "+code+" : recherche du produit…";
   try{
     const r=await fetch("https://api.upcitemdb.com/prod/trial/lookup?upc="+encodeURIComponent(code));
-    if(r.status===429){out.textContent="Limite de recherches par code atteinte pour aujourd’hui. Tape le titre et prends la jaquette en photo.";return}
+    if(r.status===429){fail("Limite de recherches atteinte pour aujourd’hui.");return}
     const j=await r.json();const it=(j.items||[])[0];
-    if(!it||!it.title){out.textContent="Code "+code+" non reconnu. Tape le titre et prends la jaquette en photo.";return}
+    if(!it||!it.title){fail("Code non reconnu par la base.");return}
     const raw=it.title,low=raw.toLowerCase();
     if(/4k|uhd/.test(low))$("fmt").value="uhd";else if(/blu-?ray/.test(low))$("fmt").value="br";else if(/dvd/.test(low))$("fmt").value="dvd";
-    $("mt").value=raw.replace(/\(.*?\)|\[.*?\]/g," ").replace(/blu-?ray|4k|uhd|ultra hd|dvd|steelbook|édition.*$/ig," ").replace(/\s+/g," ").trim();
+    $("mt").value=cleanTitle(raw.replace(/blu-?ray|4k|uhd|ultra hd|dvd|steelbook/ig," "));
     const imgs=(it.images||[]).filter(u=>/^https:/.test(u)).slice(0,6);
     out.textContent=imgs.length?"Produit trouvé. Touche la jaquette qui correspond, ou prends une photo.":"Produit trouvé, mais sans image. Prends la jaquette en photo.";
     imgs.forEach(u=>{const im=img(u,"Jaquette proposée");im.onclick=()=>{pk.querySelectorAll("img").forEach(x=>x.classList.remove("on"));im.classList.add("on");pendingCover=u};im.onerror=()=>im.remove();pk.appendChild(im)});
-  }catch(e){out.textContent="Recherche par code impossible. Tape le titre et prends la jaquette en photo."}
+  }catch(e){fail("La recherche par code est bloquée ou indisponible ("+((e&&e.message)||"erreur")+").")}
 }
 
 /* ---------- Fiche détail ---------- */
@@ -222,7 +253,7 @@ function detail(i){
   const st=document.createElement("div");st.className="stars";
   for(let n=1;n<=5;n++){const s=document.createElement("button");s.textContent="★";s.setAttribute("aria-label",n+" sur 5");if(n<=(i.rating||0))s.className="on";s.onclick=()=>{i.rating=i.rating===n?0:n;save(i);render();detail(i)};st.appendChild(s)}
   side.append(fs,sb,st);big.append(cv,side);
-  d.append(x,h,big);
+  d.append(x,h,big);const ib=document.createElement("div");ib.className="sec";d.appendChild(ib);renderInfo(i,ib);
   if(i.overview){const p=document.createElement("p");p.className="note";p.textContent=i.overview;d.appendChild(p)}
   const sec=document.createElement("div");sec.className="sec stack";
   const ct=document.createElement("div");ct.className="note";ct.textContent="Changer la jaquette :";
@@ -235,28 +266,92 @@ function detail(i){
   if(!d.open)d.showModal();
 }
 
+/* ---------- Infos du film (Wikidata, sans clé) ---------- */
+const loading=new Set(),failed=new Set();
+async function wd(o){const r=await fetch("https://www.wikidata.org/w/api.php?format=json&origin=*&"+new URLSearchParams(o));if(!r.ok)throw new Error("wikidata");return r.json()}
+async function loadInfo(i){
+  const s=await wd({action:"wbsearchentities",search:cleanTitle(i.title),language:"fr",uselang:"fr",type:"item",limit:10});
+  const hit=(s.search||[]).find(x=>/film|série télévisée|téléfilm|animation|documentaire|court métrage/i.test(x.description||""));
+  if(!hit)return null;
+  const e=(await wd({action:"wbgetentities",ids:hit.id,props:"claims|sitelinks"})).entities[hit.id];
+  const c=e.claims||{};
+  const ids=p=>(c[p]||[]).map(x=>x.mainsnak.datavalue&&x.mainsnak.datavalue.value&&x.mainsnak.datavalue.value.id).filter(Boolean);
+  const val=p=>{const v=(c[p]||[])[0];return v&&v.mainsnak.datavalue?v.mainsnak.datavalue.value:null};
+  const dir=ids("P57").slice(0,3),cast=ids("P161").slice(0,8),all=[...dir,...cast],names={};
+  if(all.length){const L=(await wd({action:"wbgetentities",ids:all.join("|"),props:"labels",languages:"fr|en"})).entities;all.forEach(q=>{const l=L[q]&&L[q].labels;names[q]=l?((l.fr||l.en||{}).value||""):""})}
+  const d=val("P577"),du=val("P2047"),imdbId=val("P345")||"";
+  let mins=0;if(du&&du.amount){mins=Math.round(+du.amount);if(/Q11574$/.test(du.unit||""))mins=Math.round(mins/60)}
+  let plot="";const t=e.sitelinks&&e.sitelinks.frwiki&&e.sitelinks.frwiki.title;
+  if(t){try{const r=await fetch("https://fr.wikipedia.org/api/rest_v1/page/summary/"+encodeURIComponent(t));if(r.ok)plot=(await r.json()).extract||""}catch(x){}}
+  const info={director:dir.map(q=>names[q]).filter(Boolean).join(", "),cast:cast.map(q=>names[q]).filter(Boolean),year:d&&d.time?d.time.slice(1,5):"",runtime:mins,imdbId,plot,imdb:""};
+  const k=omdbKey();
+  if(k&&imdbId){try{const j=await (await fetch("https://www.omdbapi.com/?i="+imdbId+"&apikey="+encodeURIComponent(k))).json();if(j.imdbRating&&j.imdbRating!=="N/A")info.imdb=j.imdbRating+"/10"}catch(x){}}
+  return info;
+}
+function renderInfo(i,box){
+  box.innerHTML="";
+  const inf=i.info;
+  const row=(k,v)=>{if(!v)return;const p=document.createElement("p");p.className="note";p.style.margin="4px 0";const b=document.createElement("b");b.textContent=k+" : ";p.append(b,document.createTextNode(v));box.appendChild(p)};
+  if(inf){row("Note IMDb",inf.imdb||(omdbKey()?"non trouvée":"ajoute une clé OMDb dans les réglages"));row("Réalisateur",inf.director);row("Acteurs",(inf.cast||[]).join(", "));row("Durée",inf.runtime?inf.runtime+" min":"");row("Genres",i.genres);row("Synopsis",inf.plot)}
+  else row("Genres",i.genres);
+  let st=null;
+  if(!inf){st=document.createElement("div");st.className="note";st.textContent=i.noinfo?"Aucune fiche trouvée pour ce titre.":failed.has(i.id)?"Infos indisponibles (connexion ?).":"Chargement des infos…";box.appendChild(st)}
+  const links=document.createElement("div");links.className="bar";links.style.marginTop="8px";
+  const a=(t,u)=>{const e=document.createElement("a");e.className="btn ghost";e.style.cssText="flex:1;text-align:center;text-decoration:none";e.textContent=t;e.href=u;e.target="_blank";e.rel="noopener";return e};
+  const y=i.year||(inf&&inf.year)||"";
+  links.append(a("Bande-annonce","https://www.youtube.com/results?search_query="+encodeURIComponent(cleanTitle(i.title)+" "+y+" bande annonce")),a("IMDb",inf&&inf.imdbId?"https://www.imdb.com/title/"+inf.imdbId+"/":"https://www.imdb.com/find/?q="+encodeURIComponent(cleanTitle(i.title))));
+  box.appendChild(links);
+  if(!inf&&!i.noinfo&&!failed.has(i.id)&&!loading.has(i.id)){
+    loading.add(i.id);
+    loadInfo(i).then(r=>{if(r){i.info=r;if(!i.year&&r.year)i.year=r.year}else i.noinfo=1;save(i)}).catch(()=>failed.add(i.id)).finally(()=>{loading.delete(i.id);if($("detD").open)renderInfo(i,box);render()});
+  }
+}
+
 /* ---------- Affichage ---------- */
+let view="grid";try{view=localStorage.getItem("movy-view")||"grid"}catch(e){}
+const yr=i=>parseInt(i.year||(i.info&&i.info.year))||0;
+const imdbN=i=>parseFloat(i.info&&i.info.imdb)||0;
+const SORTS={az:(a,b)=>a.title.localeCompare(b.title,"fr"),za:(a,b)=>b.title.localeCompare(a.title,"fr"),yd:(a,b)=>yr(b)-yr(a),ya:(a,b)=>(yr(a)||9999)-(yr(b)||9999),rate:(a,b)=>(b.rating||0)-(a.rating||0),imdb:(a,b)=>imdbN(b)-imdbN(a),new:(a,b)=>(b.u||0)-(a.u||0)};
 function render(){
   $("tabs").innerHTML="";
   [["tous","Tout"],["dvd","DVD"],["br","Blu-ray"],["uhd","4K"],["grave","Gravés"],["mkv","MKV"]].forEach(([k,l])=>{
     const b=document.createElement("button");b.className="tab";b.textContent=l;b.setAttribute("aria-pressed",filter===k);
     b.onclick=()=>{filter=k;render()};$("tabs").appendChild(b);
   });
-  const q=$("q").value.trim().toLowerCase(),sv=$("seen").value;
-  const shown=items.filter(i=>(filter==="tous"||i.format===filter)&&(!q||i.title.toLowerCase().includes(q))&&(!sv||(sv==="yes")===!!i.seen));
-  shown.sort((a,b)=>a.title.localeCompare(b.title,"fr"));
+  const gs=$("genre"),cur=gs.value,set=new Set();
+  items.forEach(i=>(i.genres||"").split(",").forEach(x=>{x=x.trim();if(x)set.add(x)}));
+  gs.innerHTML='<option value="">Tous genres</option>';
+  [...set].sort((a,b)=>a.localeCompare(b,"fr")).forEach(x=>{const o=document.createElement("option");o.value=x;o.textContent=x;gs.appendChild(o)});
+  gs.value=set.has(cur)?cur:"";
+  $("view").textContent=view==="grid"?"☰ Liste":"▦ Grille";
+  const q=$("q").value.trim().toLowerCase(),sv=$("seen").value,gv=gs.value;
+  const shown=items.filter(i=>(filter==="tous"||i.format===filter)&&(!q||i.title.toLowerCase().includes(q))&&(!sv||(sv==="yes")===!!i.seen)&&(!gv||(i.genres||"").split(",").map(x=>x.trim()).includes(gv)));
+  shown.sort(SORTS[$("sort").value]||SORTS.az);
   $("stats").textContent=shown.length+" disque"+(shown.length>1?"s":"")+(items.length!==shown.length?" sur "+items.length:"");
-  const g=$("grid");g.innerHTML="";
-  if(!shown.length){g.innerHTML='<div class="empty">'+(items.length?"Aucun disque ne correspond.":"Ta dvdthèque est vide. Appuie sur « Ajouter un disque » pour commencer.")+"</div>";return}
+  const g=$("grid");g.innerHTML="";g.className=view==="grid"?"grid":"list";
+  if(!shown.length){g.innerHTML='<div class="empty">'+(items.length?"Aucun disque ne correspond.":"Ta collection est vide. Appuie sur « Ajouter un disque » pour commencer.")+"</div>";return}
   shown.forEach(i=>{
-    const b=document.createElement("button");b.className="disc "+i.format+(i.seen?" seen":"");b.setAttribute("aria-label",i.title+", "+FMT[i.format]);
-    const cv=document.createElement("div");cv.className="cover";
-    fillCover(cv,i.cover,i.title);
-    const tag=document.createElement("span");tag.className="tag";tag.textContent=FMT[i.format];
-    b.append(cv,tag);b.onclick=()=>detail(i);g.appendChild(b);
+    const cv=document.createElement("div");cv.className="cover";fillCover(cv,i.cover,i.title);
+    if(view==="grid"){
+      const b=document.createElement("button");b.className="disc "+i.format+(i.seen?" seen":"");b.setAttribute("aria-label",i.title+", "+FMT[i.format]);
+      const tag=document.createElement("span");tag.className="tag";tag.textContent=FMT[i.format];
+      b.append(cv,tag);b.onclick=()=>detail(i);g.appendChild(b);
+    }else{
+      const b=document.createElement("button");b.className="li "+i.format+(i.seen?" seen":"");
+      const tx=document.createElement("div");tx.className="tx";
+      const t=document.createElement("div");t.className="t";t.textContent=i.title;
+      const m=document.createElement("div");m.className="m";
+      m.textContent=[FMT[i.format],yr(i)||"",imdbN(i)?"IMDb "+i.info.imdb:"",i.genres||""].filter(Boolean).join(" · ");
+      tx.append(t,m);b.append(cv,tx);b.onclick=()=>detail(i);g.appendChild(b);
+    }
   });
 }
 $("q").addEventListener("input",render);$("seen").addEventListener("change",render);
+$("sort").addEventListener("change",render);$("genre").addEventListener("change",render);
+$("view").onclick=()=>{view=view==="grid"?"list":"grid";try{localStorage.setItem("movy-view",view)}catch(e){}render()};
+$("gear").onclick=()=>$("setD").showModal();$("setX").onclick=()=>$("setD").close();
+$("omdb").value=omdbKey();
+$("omdbSave").onclick=()=>{try{localStorage.setItem(OK,$("omdb").value.trim())}catch(e){}$("omdbSave").textContent="Enregistrée";setTimeout(()=>$("omdbSave").textContent="Enregistrer",1500)};
 
 /* ---------- Synchronisation (Gist privé) ---------- */
 function setSt(t){$("syncSt").textContent=t}
