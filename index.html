@@ -5,8 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#12151c">
-<title>Ma dvdthèque</title>
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-title" content="MOVY">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<title>MOVY</title>
 <style>
 :root{--bg:#f1f2f5;--card:#fff;--ink:#1a1f2b;--mute:#667085;--line:#d9dde4;--acc:#1f6fd1;--dvd:#d9480f;--br:#1971c2;--uhd:#2f9e44;--grave:#9c36b5;--mkv:#6b7280;color-scheme:light}
 @media (prefers-color-scheme:dark){:root{--bg:#12151c;--card:#1d222d;--ink:#eef1f6;--mute:#98a2b3;--line:#313847;--acc:#5aa2f5;--dvd:#ff8a4c;--br:#5aa2f5;--uhd:#5fd37a;--grave:#da77f2;--mkv:#adb5bd;color-scheme:dark}}
@@ -30,8 +35,9 @@ input,select{background:var(--card);border:1px solid var(--line);border-radius:1
 @media (min-width:600px){.grid{grid-template-columns:repeat(5,1fr)}}
 @media (min-width:860px){.grid{grid-template-columns:repeat(6,1fr)}}
 .disc{position:relative;border:0;padding:0;background:none;cursor:pointer;text-align:left}
-.cover{aspect-ratio:2/3;border-radius:6px;overflow:hidden;background:var(--line);display:flex;align-items:center;justify-content:center;text-align:center;padding:6px;font:600 .75rem "Iowan Old Style",Georgia,serif;color:var(--mute);box-shadow:0 1px 3px rgba(0,0,0,.25);border-top:4px solid var(--c)}
+.cover{aspect-ratio:19/27;border-radius:6px;overflow:hidden;background:var(--line);display:flex;align-items:center;justify-content:center;text-align:center;padding:6px;font:600 .75rem "Iowan Old Style",Georgia,serif;color:var(--mute);box-shadow:0 1px 3px rgba(0,0,0,.25);border-top:4px solid var(--c)}
 .cover img{width:100%;height:100%;object-fit:cover;display:block}
+.cover.sp{padding:0;background-size:1000% 1000%;background-repeat:no-repeat}
 .disc.seen .cover{opacity:.55}
 .tag{position:absolute;left:5px;bottom:5px;background:var(--c);color:#fff;font:700 .62rem system-ui;padding:2px 6px;border-radius:4px}
 .dvd{--c:var(--dvd)}.br{--c:var(--br)}.uhd{--c:var(--uhd)}.grave{--c:var(--grave)}.mkv{--c:var(--mkv)}
@@ -59,11 +65,14 @@ dialog h2{margin:0 0 10px;font:700 1.15rem "Iowan Old Style",Georgia,serif}
 details{margin-top:24px}summary{cursor:pointer;font-weight:600}
 #vid{width:100%;aspect-ratio:4/3;object-fit:cover;background:#000;border-radius:10px;margin:8px 0}
 .st{font-size:.85rem;margin:8px 0}
+.picks{display:flex;gap:8px;overflow-x:auto}
+.picks img{height:120px;border-radius:6px;border:3px solid transparent;cursor:pointer;flex:none}
+.picks img.on{border-color:var(--acc)}
 </style>
 </head>
 <body>
 <main>
-<h1>Ma dvdthèque</h1>
+<h1>MOVY</h1>
 <p class="sub">Mes DVD, Blu-ray et 4K, avec leurs jaquettes.</p>
 <div class="tabs" id="tabs"></div>
 <div class="filters">
@@ -75,17 +84,6 @@ details{margin-top:24px}summary{cursor:pointer;font-weight:600}
 
 <details>
   <summary>Réglages, synchronisation et sauvegarde</summary>
-  <div class="sec">
-    <h3>Clé TMDB (affiches des films)</h3>
-    <p class="note">Crée une clé gratuite sur themoviedb.org (Paramètres, API) et colle la clé v3 ici.</p>
-    <div class="bar"><input id="key" type="password" placeholder="Clé API TMDB (v3)" autocomplete="off"><button class="btn" id="saveKey">Enregistrer</button></div>
-  </div>
-  <div class="sec">
-    <h3>Compléter les jaquettes</h3>
-    <p class="note">Cherche l’affiche des disques qui n’en ont pas, via TMDB. Les jaquettes déjà présentes ne sont jamais modifiées. Pour 700 disques, compte quelques minutes : laisse la page ouverte.</p>
-    <div class="bar"><button class="btn" id="fillBtn">Compléter les jaquettes</button><button class="btn ghost" id="fillStop" hidden>Arrêter</button></div>
-    <div class="st note" id="fillSt"></div>
-  </div>
   <div class="sec">
     <h3>Synchronisation entre appareils</h3>
     <p class="note">Ta liste est stockée dans un Gist privé de ton compte GitHub. <a href="https://github.com/settings/tokens/new?scopes=gist&description=dvdtheque" target="_blank" rel="noopener">Crée un jeton avec la seule autorisation « gist »</a>, puis colle le même jeton sur chaque appareil.</p>
@@ -106,17 +104,15 @@ details{margin-top:24px}summary{cursor:pointer;font-weight:600}
   <button class="btn ghost close" id="addX">Fermer</button>
   <h2>Ajouter un disque</h2>
   <button class="btn" id="scanBtn" style="width:100%;margin-bottom:8px">Scanner le code-barre</button>
-  <div class="bar"><select id="fmt" aria-label="Format"><option value="dvd">DVD</option><option value="br">Blu-ray</option><option value="uhd">4K UHD</option><option value="grave">Gravé</option><option value="mkv">MKV</option></select><input id="sq" type="search" placeholder="Ou tape le titre du film…" aria-label="Titre"></div>
-  <button class="btn" id="go" style="width:100%">Chercher la jaquette</button>
-  <div class="res" id="res"></div>
-  <div class="sec">
-    <h3>Pas trouvé ? Saisie manuelle</h3>
-    <div class="stack">
-      <input id="mt" placeholder="Titre" maxlength="120">
-      <input id="my" type="number" placeholder="Année (facultatif)" min="1888" max="2100">
-      <label class="note">Photo de la jaquette (facultatif)<input id="mp" type="file" accept="image/*" capture="environment"></label>
-      <button class="btn" id="mAdd">Ajouter ce disque</button>
-    </div>
+  <div class="note" id="res"></div>
+  <div class="stack" style="margin-top:10px">
+    <div class="bar" style="margin:0"><select id="fmt" aria-label="Format"><option value="dvd">DVD</option><option value="br">Blu-ray</option><option value="uhd">4K UHD</option><option value="grave">Gravé</option><option value="mkv">MKV</option></select><input id="mt" placeholder="Titre" maxlength="120"></div>
+    <input id="my" type="number" placeholder="Année (facultatif)" min="1888" max="2100">
+    <div class="picks" id="pick"></div>
+    <div class="note">Jaquette (recommandé)</div>
+    <div class="bar" style="margin:0"><label class="btn ghost" style="flex:1;text-align:center">Prendre une photo<input id="mp" type="file" accept="image/*" capture="environment" hidden></label><label class="btn ghost" style="flex:1;text-align:center">Ma photothèque<input id="mp2" type="file" accept="image/*" hidden></label></div>
+    <div class="note" id="mpName"></div>
+    <button class="btn" id="mAdd">Ajouter ce disque</button>
   </div>
 </dialog>
 
@@ -143,55 +139,30 @@ try{
 try{cfg=JSON.parse(localStorage.getItem(SK)||"{}")}catch(e){cfg={}}
 function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify({items,del}))}catch(e){alert("Stockage plein. Exporte ta bibliothèque en JSON pour la sauvegarder.")}}
 function save(i){if(i)i.u=Date.now();saveLocal();queueSync()}
-function tmdbKey(){try{return localStorage.getItem(TK)||""}catch(e){return ""}}
 const nid=()=>Date.now()+"-"+Math.random().toString(36).slice(2,6);
-$("key").value=tmdbKey();
-$("saveKey").onclick=()=>{try{localStorage.setItem(TK,$("key").value.trim())}catch(e){}$("saveKey").textContent="Enregistrée";setTimeout(()=>$("saveKey").textContent="Enregistrer",1500)};
 
 function img(src,alt){const i=document.createElement("img");i.src=src;i.alt=alt;i.loading="lazy";return i}
+function fillCover(el,c,t){
+  const m=/^sp:(\d+):(\d+)$/.exec(c||"");
+  if(m){const p=+m[2];el.classList.add("sp");el.style.backgroundImage="url(s"+m[1]+".jpg)";el.style.backgroundPosition=((p%10)/9*100)+"% "+(Math.floor(p/10)/9*100)+"%";el.setAttribute("role","img");el.setAttribute("aria-label",t)}
+  else if(c)el.appendChild(img(c,t));else el.textContent=t;
+}
 function thumb(file){return new Promise((ok,ko)=>{const r=new FileReader();r.onerror=ko;r.onload=()=>{const im=new Image();im.onerror=ko;im.onload=()=>{const w=Math.min(320,im.width),h=Math.round(im.height*w/im.width),c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(im,0,0,w,h);ok(c.toDataURL("image/jpeg",.7))};im.src=r.result};r.readAsDataURL(file)})}
 
-/* ---------- Recherche TMDB ---------- */
-async function searchFilms(q){
-  const k=tmdbKey();
-  if(!k)throw new Error("Ajoute ta clé TMDB dans « Réglages », en bas de la page.");
-  const r=await fetch("https://api.themoviedb.org/3/search/movie?include_adult=false&language=fr-FR&query="+encodeURIComponent(q)+"&api_key="+encodeURIComponent(k));
-  if(r.status===401)throw new Error("Clé TMDB refusée. Vérifie qu’il s’agit de la clé v3.");
-  if(!r.ok)throw new Error("TMDB est indisponible. Réessaie dans un instant.");
-  const j=await r.json();
-  return (j.results||[]).slice(0,8).map(f=>({title:f.title,year:(f.release_date||"").slice(0,4),cover:f.poster_path?"https://image.tmdb.org/t/p/w342"+f.poster_path:"",overview:f.overview||""}));
-}
-async function go(){
-  const q=$("sq").value.trim(),out=$("res");if(!q)return;
-  out.textContent="Recherche en cours…";
-  try{
-    const list=await searchFilms(q);out.textContent="";
-    if(!list.length){out.textContent="Aucun résultat. Essaie un autre titre ou la saisie manuelle.";return}
-    list.forEach(x=>{
-      const r=document.createElement("div");r.className="r";
-      r.appendChild(x.cover?img(x.cover,""):Object.assign(document.createElement("div"),{className:"ph"}));
-      const info=document.createElement("div");info.className="info";
-      const b=document.createElement("strong");b.textContent=x.title;
-      const m=document.createElement("div");m.className="m";m.textContent=x.year;
-      info.append(b,m);
-      const add=document.createElement("button");add.className="btn";add.textContent="Ajouter";
-      add.onclick=()=>{const it={id:nid(),title:x.title,year:x.year,cover:x.cover,overview:x.overview,format:$("fmt").value,seen:false,rating:0};items.unshift(it);save(it);add.textContent="Ajouté";add.disabled=true;render()};
-      r.append(info,add);out.appendChild(r);
-    });
-  }catch(e){out.textContent=e.message||"La recherche a échoué."}
-}
-$("go").onclick=go;
-$("sq").addEventListener("keydown",e=>{if(e.key==="Enter")go()});
+/* ---------- Ajout d'un disque ---------- */
+let pendingCover="";
 $("fab").onclick=()=>$("addD").showModal();
 $("addX").onclick=()=>$("addD").close();
 $("mAdd").onclick=async()=>{
   const t=$("mt").value.trim();if(!t){$("mt").focus();return}
-  let cover="";const f=$("mp").files[0];
+  let cover=pendingCover;const f=$("mp").files[0]||$("mp2").files[0];
   if(f){try{cover=await thumb(f)}catch(e){alert("Photo illisible. Le disque sera ajouté sans jaquette.")}}
   const it={id:nid(),title:t,year:$("my").value,cover,overview:"",format:$("fmt").value,seen:false,rating:0};
   items.unshift(it);save(it);
-  $("mt").value="";$("my").value="";$("mp").value="";$("addD").close();render();
+  $("mt").value="";$("my").value="";$("mp").value="";$("mp2").value="";$("mpName").textContent="";pendingCover="";$("pick").innerHTML="";$("res").textContent="";
+  $("addD").close();render();
 };
+["mp","mp2"].forEach(id=>$(id).addEventListener("change",e=>{const f=e.target.files[0];$("mpName").textContent=f?"Image choisie : "+f.name:"";if(f)$(id==="mp"?"mp2":"mp").value=""}));
 
 /* ---------- Scan code-barre ---------- */
 let stream=null,scanning=false,zx=null;
@@ -220,17 +191,20 @@ $("scanX").onclick=()=>$("scanD").close();
 $("codeGo").onclick=()=>{const c=$("code").value.replace(/\D/g,"");if(c.length>=8)onCode(c);else $("code").focus()};
 async function onCode(code){
   stopScan();if($("scanD").open)$("scanD").close();
-  const out=$("res");out.textContent="Code "+code+" : recherche du produit…";
+  const out=$("res"),pk=$("pick");pk.innerHTML="";pendingCover="";
+  out.textContent="Code "+code+" : recherche du produit…";
   try{
     const r=await fetch("https://api.upcitemdb.com/prod/trial/lookup?upc="+encodeURIComponent(code));
-    if(r.status===429){out.textContent="Limite de recherches par code atteinte pour aujourd’hui. Tape le titre à la main.";return}
+    if(r.status===429){out.textContent="Limite de recherches par code atteinte pour aujourd’hui. Tape le titre et prends la jaquette en photo.";return}
     const j=await r.json();const it=(j.items||[])[0];
-    if(!it||!it.title){out.textContent="Code "+code+" non reconnu. Tape le titre pour le chercher.";return}
+    if(!it||!it.title){out.textContent="Code "+code+" non reconnu. Tape le titre et prends la jaquette en photo.";return}
     const raw=it.title,low=raw.toLowerCase();
     if(/4k|uhd/.test(low))$("fmt").value="uhd";else if(/blu-?ray/.test(low))$("fmt").value="br";else if(/dvd/.test(low))$("fmt").value="dvd";
-    $("sq").value=raw.replace(/\(.*?\)|\[.*?\]/g," ").replace(/blu-?ray|4k|uhd|ultra hd|dvd|steelbook|édition.*$/ig," ").replace(/\s+/g," ").trim();
-    go();
-  }catch(e){out.textContent="Recherche par code impossible. Tape le titre à la main."}
+    $("mt").value=raw.replace(/\(.*?\)|\[.*?\]/g," ").replace(/blu-?ray|4k|uhd|ultra hd|dvd|steelbook|édition.*$/ig," ").replace(/\s+/g," ").trim();
+    const imgs=(it.images||[]).filter(u=>/^https:/.test(u)).slice(0,6);
+    out.textContent=imgs.length?"Produit trouvé. Touche la jaquette qui correspond, ou prends une photo.":"Produit trouvé, mais sans image. Prends la jaquette en photo.";
+    imgs.forEach(u=>{const im=img(u,"Jaquette proposée");im.onclick=()=>{pk.querySelectorAll("img").forEach(x=>x.classList.remove("on"));im.classList.add("on");pendingCover=u};im.onerror=()=>im.remove();pk.appendChild(im)});
+  }catch(e){out.textContent="Recherche par code impossible. Tape le titre et prends la jaquette en photo."}
 }
 
 /* ---------- Fiche détail ---------- */
@@ -239,7 +213,7 @@ function detail(i){
   const x=document.createElement("button");x.className="btn ghost close";x.textContent="Fermer";x.onclick=()=>d.close();
   const h=document.createElement("h2");h.textContent=i.title+(i.year?" ("+i.year+")":"");
   const big=document.createElement("div");big.className="big";
-  const cv=document.createElement("div");cv.className="cover "+i.format;if(i.cover)cv.appendChild(img(i.cover,i.title));else cv.textContent=i.title;
+  const cv=document.createElement("div");cv.className="cover "+i.format;fillCover(cv,i.cover,i.title);
   const side=document.createElement("div");side.className="stack";side.style.flex="1";
   const fs=document.createElement("select");Object.entries(FMT).forEach(([k,l])=>{const o=document.createElement("option");o.value=k;o.textContent=l;if(k===i.format)o.selected=true;fs.appendChild(o)});
   fs.onchange=()=>{i.format=fs.value;save(i);render()};
@@ -251,13 +225,13 @@ function detail(i){
   d.append(x,h,big);
   if(i.overview){const p=document.createElement("p");p.className="note";p.textContent=i.overview;d.appendChild(p)}
   const sec=document.createElement("div");sec.className="sec stack";
-  const lab=document.createElement("label");lab.className="note";lab.textContent="Remplacer la jaquette par une photo";
-  const fi=document.createElement("input");fi.type="file";fi.accept="image/*";fi.setAttribute("capture","environment");
-  fi.onchange=async()=>{if(fi.files[0]){try{i.cover=await thumb(fi.files[0]);save(i);render();detail(i)}catch(e){alert("Photo illisible.")}}};
-  lab.appendChild(fi);
+  const ct=document.createElement("div");ct.className="note";ct.textContent="Changer la jaquette :";
+  const lab=document.createElement("div");lab.className="bar";lab.style.margin="0";
+  const pickIn=(text,cap)=>{const l=document.createElement("label");l.className="btn ghost";l.style.cssText="flex:1;text-align:center";l.textContent=text;const fi=document.createElement("input");fi.type="file";fi.accept="image/*";fi.hidden=true;if(cap)fi.setAttribute("capture","environment");fi.onchange=async()=>{if(fi.files[0]){try{i.cover=await thumb(fi.files[0]);save(i);render();detail(i)}catch(e){alert("Photo illisible.")}}};l.appendChild(fi);return l};
+  lab.append(pickIn("Prendre une photo",true),pickIn("Ma photothèque",false));
   const dl=document.createElement("button");dl.className="btn danger";dl.textContent="Supprimer ce disque";
   dl.onclick=()=>{if(confirm("Supprimer « "+i.title+" » ?")){items=items.filter(z=>z.id!==i.id);del[i.id]=Date.now();save();d.close();render()}};
-  sec.append(lab,dl);d.appendChild(sec);
+  sec.append(ct,lab,dl);d.appendChild(sec);
   if(!d.open)d.showModal();
 }
 
@@ -277,7 +251,7 @@ function render(){
   shown.forEach(i=>{
     const b=document.createElement("button");b.className="disc "+i.format+(i.seen?" seen":"");b.setAttribute("aria-label",i.title+", "+FMT[i.format]);
     const cv=document.createElement("div");cv.className="cover";
-    if(i.cover)cv.appendChild(img(i.cover,i.title));else cv.textContent=i.title;
+    fillCover(cv,i.cover,i.title);
     const tag=document.createElement("span");tag.className="tag";tag.textContent=FMT[i.format];
     b.append(cv,tag);b.onclick=()=>detail(i);g.appendChild(b);
   });
@@ -332,55 +306,6 @@ $("syncNow").onclick=sync;
 $("syncOff").onclick=()=>{cfg={};try{localStorage.removeItem(SK)}catch(e){}setSt("Synchronisation désactivée sur cet appareil. Tes disques restent ici.")};
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)sync()});
 if(cfg.tok&&cfg.gid){setSt("Synchronisation activée.");sync()}
-
-/* ---------- Compléter les jaquettes ---------- */
-let fillStop=false;
-const SER=/saison|season|int[ée]grale|complete series/i;
-const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-function cleanTitle(t){
-  return t.replace(/\(.*?\)|\[.*?\]/g," ")
-    .replace(/\s*[:\-–]?\s*(l['’]int[ée]grale.*|int[ée]grale.*|the complete series.*|saisons?\s*\d.*|season\s*\d.*|coffret.*|édition.*|collector.*)$/i," ")
-    .replace(/\s+/g," ").trim();
-}
-async function tmdbHit(path,q,retry){
-  const r=await fetch("https://api.themoviedb.org/3/search/"+path+"?include_adult=false&language=fr-FR&query="+encodeURIComponent(q)+"&api_key="+encodeURIComponent(tmdbKey()));
-  if(r.status===401)throw new Error("auth");
-  if(r.status===429&&!retry){await sleep(2500);return tmdbHit(path,q,true)}
-  if(!r.ok)return null;
-  return ((await r.json()).results||[]).find(x=>x.poster_path)||null;
-}
-async function fillCovers(){
-  const st=$("fillSt");
-  if(!tmdbKey()){st.textContent="Ajoute d’abord ta clé TMDB dans la section ci-dessus.";return}
-  const todo=items.filter(i=>!i.cover);
-  if(!todo.length){st.textContent="Tous tes disques ont déjà une jaquette.";return}
-  if(!confirm("Chercher la jaquette de "+todo.length+" disque"+(todo.length>1?"s":"")+" sans image ? Les jaquettes existantes ne seront pas modifiées.\n\nAttention : certaines affiches trouvées peuvent ne pas correspondre exactement. Tu pourras les remplacer par une photo dans la fiche du disque."))return;
-  fillStop=false;$("fillBtn").disabled=true;$("fillStop").hidden=false;
-  let n=0,ok=0,ko=0,err="";
-  try{
-    for(const i of todo){
-      if(fillStop)break;
-      n++;st.textContent="Recherche "+n+" / "+todo.length+" · "+ok+" trouvées";
-      const q=cleanTitle(i.title);let hit=null,tv=false;
-      if(q){
-        for(const p of (SER.test(i.title)?["tv","movie"]:["movie"])){hit=await tmdbHit(p,q);if(hit){tv=p==="tv";break}}
-      }
-      if(hit){
-        i.cover="https://image.tmdb.org/t/p/w342"+hit.poster_path;
-        i.year=i.year||((tv?hit.first_air_date:hit.release_date)||"").slice(0,4);
-        i.overview=i.overview||hit.overview||"";
-        i.auto=1;i.u=Date.now();ok++;
-      }else ko++;
-      if(n%20===0){saveLocal();render()}
-      await sleep(120);
-    }
-  }catch(e){err=e&&e.message==="auth"?"Clé TMDB refusée. Vérifie qu’il s’agit de la clé v3.":"Interrompu (connexion ou TMDB). Relance : les jaquettes déjà trouvées sont conservées."}
-  saveLocal();render();queueSync();
-  $("fillBtn").disabled=false;$("fillStop").hidden=true;
-  st.textContent=(err?err+" ":"")+(fillStop?"Arrêté. ":"Terminé. ")+ok+" jaquette"+(ok>1?"s":"")+" ajoutée"+(ok>1?"s":"")+", "+ko+" sans résultat (séries, coffrets ou titres rares : ajoute une photo dans leur fiche).";
-}
-$("fillBtn").onclick=fillCovers;
-$("fillStop").onclick=()=>{fillStop=true};
 
 /* ---------- Export / import ---------- */
 $("exp").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(items,null,2)],{type:"application/json"}));a.download="dvdtheque.json";a.click()};
