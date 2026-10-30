@@ -5,9 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#f1f2f5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#12151c" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-title" content="MOVY">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icon-192.png">
@@ -18,11 +19,9 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{background:var(--bg)}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
-#topbar{position:fixed;top:0;left:0;right:0;z-index:60;background:var(--bg);padding-top:env(safe-area-inset-top);border-bottom:1px solid transparent}
-#topbar.q{padding-top:calc(max(env(safe-area-inset-top),20px) + 30px);border-bottom-color:var(--line)}
-#home{padding-top:calc(14px + var(--topH,0px))}
-#more{padding-top:calc(16px + var(--topH,0px))}
-.qband{display:block;width:100%;border:0;background:none;color:var(--ink);text-align:center;padding:0 16px 10px;font:italic .8rem/1.35 Georgia,"Iowan Old Style",serif;cursor:pointer}
+#topbar{position:fixed;top:0;left:0;right:0;z-index:60;background:var(--bg);padding-top:env(safe-area-inset-top)}
+#home,#more,#settings{padding-top:calc(16px + var(--topH,0px))}
+.qband{display:block;width:100%;border:0;background:none;color:var(--ink);text-align:center;margin:2px 0 12px;padding:2px 10px;font:italic .84rem/1.35 Georgia,"Iowan Old Style",serif;cursor:pointer}
 .qband .ql{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .qband #qs{opacity:.6;font-style:normal;font-size:.7rem}
 main,#film{max-width:900px;margin:0 auto;padding:16px 12px calc(110px + env(safe-area-inset-bottom))}
@@ -65,7 +64,7 @@ input,select{background:var(--card);border:1px solid var(--line);border-radius:1
 .dup{position:absolute;right:5px;top:26px;z-index:2;background:#f08c00;color:#fff;font:700 .62rem system-ui;padding:2px 5px;border-radius:4px}
 .dvd{--c:var(--dvd)}.br{--c:var(--br)}.uhd{--c:var(--uhd)}.grave{--c:var(--grave)}.mkv{--c:var(--mkv)}
 .empty{grid-column:1/-1;text-align:center;color:var(--mute);padding:40px 10px}
-.fab{position:fixed;right:16px;bottom:calc(46px + env(safe-area-inset-bottom));z-index:40;box-shadow:0 4px 14px rgba(0,0,0,.35);padding:0;width:56px;height:56px;border-radius:50%;font-size:2rem;line-height:1;display:flex;align-items:center;justify-content:center}
+.fab{position:fixed;right:16px;bottom:calc(60px + env(safe-area-inset-bottom));z-index:40;box-shadow:0 4px 14px rgba(0,0,0,.35);padding:0;width:56px;height:56px;border-radius:50%;font-size:2rem;line-height:1;display:flex;align-items:center;justify-content:center}
 dialog{width:min(94vw,520px);max-height:88vh;overflow:auto;background:var(--card);color:var(--ink);border:0;border-radius:14px;padding:16px}
 dialog::backdrop{background:rgba(0,0,0,.55)}
 dialog h2{margin:0 0 10px;font:700 1.15rem "Iowan Old Style",Georgia,serif}
@@ -136,8 +135,8 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;display
 .imdb{display:inline-block;background:#f5c518;color:#000;font:800 .8rem system-ui;padding:4px 9px;border-radius:6px;text-decoration:none;white-space:nowrap}
 details.rc summary{cursor:pointer;font-weight:600}
 #tabbar{position:fixed;left:0;right:0;bottom:0;z-index:50;display:flex;background:#000;border-top:1px solid #2a2a2a;padding-bottom:env(safe-area-inset-bottom)}
-.tb{flex:1;background:none;border:0;border-top:2px solid transparent;padding:5px 4px 4px;display:flex;align-items:center;justify-content:center;color:#fff;opacity:.55;cursor:pointer}
-.tb svg{display:block}
+.tb{flex:1;background:none;border:0;border-top:2px solid transparent;padding:6px 4px 5px;display:flex;align-items:center;justify-content:center;color:#fff;opacity:.55;cursor:pointer}
+.tb svg{display:block;width:30px;height:30px}
 .tb.on{opacity:1;border-top-color:#fff}
 .scope{display:flex;justify-content:space-between;align-items:center;background:var(--ink);color:var(--bg);border-radius:10px;padding:6px 6px 6px 12px;margin-bottom:10px;font-weight:600}
 .scope button{background:none;border:0;color:inherit;font-weight:600;cursor:pointer;padding:6px 10px}
@@ -148,19 +147,18 @@ details.rc summary{cursor:pointer;font-weight:600}
 .tonight .ri,.tonight .ri .cover{width:104px}
 .tn{display:grid;gap:6px;min-width:0;flex:1}
 .tt{font:700 1.1rem/1.2 "Iowan Old Style",Georgia,serif}
-.setwrap{margin-top:26px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
-.setwrap>summary{cursor:pointer;font:700 1.05rem "Iowan Old Style",Georgia,serif}
 .lrow{display:flex;gap:8px;align-items:center;border-top:1px solid var(--line);padding:8px 0}
 .lrow input{flex:1}
 </style>
 </head>
 <body>
-<div id="topbar" class="q"><button class="qband" id="qband" type="button" aria-label="Afficher une autre réplique"><span class="ql"><span id="qt"></span><span id="qs"></span></span></button></div>
+<div id="topbar" aria-hidden="true"></div>
 <main id="home">
 <div class="top"><div><h1>MOVY</h1>
 <p class="sub">Ma collection de films et séries.</p></div><button class="btn ghost gear" id="view" type="button">☰ Liste</button></div>
 <div class="scope" id="scopeBar" hidden><span id="scopeLbl"></span><button id="scopeX" type="button">✕ Retirer</button></div>
 <div class="tabs" id="tabs"></div>
+<button class="qband" id="qband" type="button" aria-label="Afficher une autre réplique"><span class="ql"><span id="qt"></span><span id="qs"></span></span></button>
 <div class="filters">
   <div class="sw"><input id="q" type="search" placeholder="Titre, acteur, réalisateur, année, genre…" aria-label="Rechercher" autocomplete="off" autocapitalize="off" spellcheck="false"><button id="qx" type="button" aria-label="Effacer la recherche" hidden>✕</button></div>
   <button class="btn ghost" id="fbtn">Filtres</button>
@@ -180,9 +178,13 @@ details.rc summary{cursor:pointer;font-weight:600}
 </main>
 
 <main id="more" hidden>
-<div class="top"><div><h1>Explorer</h1><p class="sub">Tes étagères : listes, séries, dessins animés…</p></div><div class="bar"><button class="btn ghost gear" id="listsBtn2">Favoris</button></div></div>
+<div class="top"><div><h1>Explorer</h1><p class="sub">Tes listes et tes étagères.</p></div></div>
 <div id="moreBody"></div>
-<details class="setwrap" id="setD"><summary>⚙ Réglages</summary>
+</main>
+
+<main id="settings" hidden>
+<div class="top"><div><h1>Réglages</h1><p class="sub">Clés, synchronisation et sauvegarde.</p></div></div>
+<div id="setD">
   <div class="sec">
     <h3>TMDB</h3>
     <div class="bar"><input id="tmdb" class="secret" type="text" name="tmdb-api" placeholder="Clé TMDB" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore><button class="btn" id="tmdbSave">Enregistrer</button></div>
@@ -215,14 +217,14 @@ details.rc summary{cursor:pointer;font-weight:600}
     <p class="note" id="verTxt"></p>
     <button class="btn ghost" id="upd">Mettre à jour l'application</button>
   </div>
-</details>
+</div>
 </main>
 
 <section id="film" hidden></section>
 
 <button class="btn fab" id="fab" aria-label="Ajouter un disque">＋</button>
 
-<nav id="tabbar" aria-label="Navigation"><button class="tb on" id="tbHome" type="button" aria-label="Accueil"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></button><button class="tb" id="tbMore" type="button" aria-label="Explorer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg></button></nav>
+<nav id="tabbar" aria-label="Navigation"><button class="tb on" id="tbHome" type="button" aria-label="Accueil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></button><button class="tb" id="tbMore" type="button" aria-label="Explorer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg></button><button class="tb" id="tbSet" type="button" aria-label="Réglages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></nav>
 
 <dialog id="addD">
   <button class="btn ghost close" id="addX">Fermer</button>
@@ -1043,16 +1045,23 @@ function tonight(){
     card.append(el("button",{class:"ri",onclick:()=>openFilm(x.id)},mkCover(x)),el("div",{class:"tn"},el("div",{class:"m"},"Une idée pour ce soir"),el("div",{class:"tt"},x.title),el("div",{class:"m"},[FMT[x.format],yr(x)||"",x.genres||""].filter(Boolean).join(" · ")),el("button",{class:"btn",onclick:()=>openFilm(x.id)},"Voir la fiche"),el("button",{class:"btn ghost",onclick:pick},"Une autre idée")))};
   pick();return card;
 }
+function listsSection(){
+  const chips=el("div",{class:"chips"});
+  alive().forEach(l=>{const n=items.filter(i=>(i.lists||[]).includes(l.id)).length;chips.appendChild(el("button",{class:"chip",onclick:()=>{scope={label:l.name,test:i=>(i.lists||[]).includes(l.id)};go("")}},l.name+" · "+n))});
+  chips.appendChild(el("button",{class:"chip link",onclick:()=>{const n=(prompt("Nom de la nouvelle liste ?")||"").trim();if(n&&newList(n))renderMore()}},"＋ Nouvelle liste"));
+  if(alive().length)chips.appendChild(el("button",{class:"chip link",onclick:()=>openLists()},"✎ Renommer / supprimer"));
+  return el("section",{class:"shelf"},el("div",{class:"shh"},el("h2",null,"Mes listes")),chips,el("p",{class:"note",style:"margin:8px 0 0"},"Pour ranger un film dans une liste, ouvre sa fiche."));
+}
 function renderMore(){
-  const box=$("moreBody");box.innerHTML="";computeDups();fillSettings();
+  const box=$("moreBody");box.innerHTML="";computeDups();
   if(!items.length){box.appendChild(el("p",{class:"note"},"Ajoute quelques disques : tes étagères (listes, séries, dessins animés…) apparaîtront ici."));return}
   box.appendChild(tonight());
+  box.appendChild(listsSection());
   const byTitle=(a,b)=>a.title.localeCompare(b.title,"fr");
   const mk=(t,test,sort)=>shelf(t,items.filter(test).sort(sort||byTitle),test);
   const out=[];
   const newest=[...items].sort((a,b)=>addedTs(b)-addedTs(a)).slice(0,30),newIds=new Set(newest.map(x=>x.id));
   out.push(shelf("Derniers ajouts",newest,i=>newIds.has(i.id)));
-  alive().forEach(l=>out.push(mk("★ "+l.name,i=>(i.lists||[]).includes(l.id))));
   out.push(mk("Séries",isTv));
   out.push(mk("Films",i=>!isTv(i)&&!isAnim(i)&&!isDoc(i)));
   out.push(mk("Dessins animés",isAnim));
@@ -1069,17 +1078,17 @@ function renderMore(){
 }
 
 /* ---------- Navigation ---------- */
-function setTab(t){$("tbHome").classList.toggle("on",t==="home");$("tbMore").classList.toggle("on",t==="more");$("tbHome").setAttribute("aria-current",t==="home"?"page":"false");$("tbMore").setAttribute("aria-current",t==="more"?"page":"false")}
+function setTab(t){[["tbHome","home"],["tbMore","more"],["tbSet","settings"]].forEach(([id,k])=>{$(id).classList.toggle("on",t===k);$(id).setAttribute("aria-current",t===k?"page":"false")})}
 function route(){
   sy[curView]=window.scrollY;
   const m=/^#film=(.+)$/.exec(location.hash);
   const i=m&&items.find(x=>x.id===decodeURIComponent(m[1]));
-  const v=i?"film":(location.hash==="#more"?"more":"home");
-  $("home").hidden=v!=="home";$("qband").hidden=v!=="home";$("topbar").classList.toggle("q",v==="home");fitTop();$("fab").hidden=v!=="home";$("more").hidden=v!=="more";$("film").hidden=v!=="film";
+  const v=i?"film":(location.hash==="#more"?"more":location.hash==="#settings"?"settings":"home");
+  $("home").hidden=v!=="home";fitTop();$("fab").hidden=v!=="home";$("more").hidden=v!=="more";$("settings").hidden=v!=="settings";$("film").hidden=v!=="film";
   if(v==="film")showFilm(i);
   else{
     curFilm=null;setTab(v);
-    if(v==="home"){if(curView!=="home")newQuote();render()}else renderMore();
+    if(v==="home"){if(curView!=="home")newQuote();render()}else if(v==="more")renderMore();else fillSettings();
     window.scrollTo(0,sy[v]||0);
   }
   curView=v;
@@ -1087,6 +1096,7 @@ function route(){
 window.addEventListener("hashchange",route);
 $("tbHome").onclick=()=>{if(curView==="home"&&window.scrollY>0)window.scrollTo({top:0,behavior:"smooth"});else go("")};
 $("tbMore").onclick=()=>{if(curView==="more"&&window.scrollY>0)window.scrollTo({top:0,behavior:"smooth"});else go("more")};
+$("tbSet").onclick=()=>{if(curView==="settings"&&window.scrollY>0)window.scrollTo({top:0,behavior:"smooth"});else go("settings")};
 
 /* ---------- Geste : retour en glissant depuis le bord gauche ---------- */
 let tg=null;
@@ -1099,7 +1109,7 @@ document.addEventListener("touchend",e=>{
 function swipeBack(){
   const open=[...document.querySelectorAll("dialog[open]")];
   if(open.length){open[open.length-1].close();return}
-  if(!$("film").hidden)goBack();else if(!$("more").hidden)go("");
+  if(!$("film").hidden)goBack();else if(!$("more").hidden||!$("settings").hidden)go("");
 }
 
 /* ---------- Réglages ---------- */
@@ -1110,9 +1120,9 @@ function fillRecent(){
   l.forEach(i=>{const d=addedTs(i),dt=d>1e11?new Date(d).toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"}):"";
     box.appendChild(el("button",{class:"li "+i.format,style:"width:100%;margin-bottom:8px",onclick:()=>openFilm(i.id)},mkCover(i),el("div",{class:"tx"},el("div",{class:"t"},i.title),el("div",{class:"m"},[FMT[i.format],dt].filter(Boolean).join(" · ")))))});
 }
-const APP_VERSION="30/10/2026 · v4";
+const APP_VERSION="30/10/2026 · v6";
 function fillSettings(){$("enrichSt").textContent=enrichText();fillRecent();$("verTxt").textContent="Version affichée : "+APP_VERSION+". Après avoir remplacé index.html sur GitHub, attends environ 10 minutes, puis touche ce bouton. Ne supprime pas le raccourci de l'écran d'accueil : tes disques sont enregistrés dedans."}
-$("listsBtn2").onclick=()=>openLists();
+$("listD").addEventListener("close",()=>{if(curView==="more")renderMore();else if(curView==="home")render()});
 $("upd").onclick=async()=>{try{if(window.caches){for(const k of await caches.keys())await caches.delete(k)}const r=await fetch(location.pathname,{cache:"reload"});await r.text()}catch(e){}location.reload()};
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
 $("omdb").value=omdbKey();$("tmdb").value=tmKey();
@@ -1181,17 +1191,48 @@ document.addEventListener("visibilitychange",()=>{if(!document.hidden)sync()});
 if(cfg.tok&&cfg.gid){setSt("Synchronisation activée.");sync()}
 
 /* ---------- Export / import ---------- */
-$("exp").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify({items,lists,keys:{tmdb:tmKey(),omdb:omdbKey()}},null,2)],{type:"application/json"}));a.download="dvdtheque.json";a.click()};
+function buildBackup(){
+  const prefs={};try{prefs.view=localStorage.getItem("movy-view")||""}catch(e){}
+  return {app:"MOVY",format:3,exportedAt:new Date().toISOString(),items,del,lists,
+    keys:{tmdb:tmKey(),omdb:omdbKey()},
+    sync:(cfg&&cfg.tok)?{tok:cfg.tok,gid:cfg.gid||""}:null,prefs};
+}
+$("exp").onclick=()=>{
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(buildBackup(),null,2)],{type:"application/json"}));
+  a.download="movy-sauvegarde-"+new Date().toISOString().slice(0,10)+".json";a.click();
+};
 $("impBtn").onclick=()=>$("imp").click();
 $("imp").onchange=async e=>{
+  const f=e.target.files[0];e.target.value="";if(!f)return;
   try{
-    const raw=JSON.parse(await e.target.files[0].text());
-    const d=Array.isArray(raw)?raw:(raw&&Array.isArray(raw.items)?raw.items:null);
-    if(!d)throw new Error("format");
-    if(raw&&!Array.isArray(raw)&&Array.isArray(raw.lists))mergeLists(raw.lists);
-    if(raw&&raw.keys){try{if(raw.keys.tmdb){localStorage.setItem(TK,raw.keys.tmdb);$("tmdb").value=raw.keys.tmdb}if(raw.keys.omdb){localStorage.setItem(OK,raw.keys.omdb);$("omdb").value=raw.keys.omdb}}catch(x){}}
-    d.forEach(x=>{if(x&&x.title&&!items.some(z=>z.id===x.id))items.push({id:x.id||nid(),title:x.title,year:x.year||"",cover:x.cover||"",overview:x.overview||"",format:FMT[x.format]?x.format:"dvd",seen:!!x.seen||x.status==="termine",rating:x.rating||0,genres:x.genres||"",age:x.age||"",pick:x.pick||null,kind:x.kind||"",owned:Array.isArray(x.owned)?x.owned:undefined,code:x.code||"",lists:Array.isArray(x.lists)?x.lists:[],info:x.info||null,num:x.num||0,auto:x.auto||0,u:Date.now()})});
-    save();render();enrichAll();
+    const raw=JSON.parse(await f.text());
+    const arr=Array.isArray(raw)?raw:(raw&&Array.isArray(raw.items)?raw.items:null);
+    if(!arr)throw new Error("format");
+    /* normalisation : on garde TOUT ce que contient chaque disque, et sa date de modification d'origine */
+    const inc=[];
+    arr.forEach(x=>{if(!x||typeof x!=="object"||!x.title)return;
+      const it=Object.assign({},x);
+      it.id=x.id||nid();it.format=FMT[x.format]?x.format:"dvd";
+      if(x.status==="termine")it.seen=true;
+      it.u=Number(x.u)||1;inc.push(it)});
+    const have=new Map(items.map(i=>[i.id,i]));
+    merge({items:inc,del:(raw&&!Array.isArray(raw)&&raw.del)||{},lists:(raw&&!Array.isArray(raw))?raw.lists:null});
+    const cur=new Map(items.map(i=>[i.id,i]));
+    let added=0,updated=0,kept=0,gone=0;
+    inc.forEach(x=>{const l=have.get(x.id),c=cur.get(x.id);
+      if(!c)gone++;else if(!l)added++;else if(c===x)updated++;else kept++});
+    if(raw&&!Array.isArray(raw)){
+      try{
+        const k=raw.keys||{};
+        if(k.tmdb&&!tmKey()){localStorage.setItem(TK,k.tmdb);$("tmdb").value=k.tmdb}
+        if(k.omdb&&!omdbKey()){localStorage.setItem(OK,k.omdb);$("omdb").value=k.omdb}
+        if(raw.sync&&raw.sync.tok&&!cfg.tok){cfg={tok:raw.sync.tok,gid:raw.sync.gid||""};if(cfg.gid)localStorage.setItem(SK,JSON.stringify(cfg))}
+        if(raw.prefs&&raw.prefs.view&&!localStorage.getItem("movy-view")){view=raw.prefs.view;localStorage.setItem("movy-view",view)}
+      }catch(x){}
+    }
+    saveLocal();queueSync();render();enrichAll();
+    alert("Sauvegarde fusionnée : "+added+" ajouté"+(added>1?"s":"")+", "+updated+" mis à jour (plus récents dans la sauvegarde), "+kept+" conservé"+(kept>1?"s":"")+" tel"+(kept>1?"s":"")+" quel"+(kept>1?"s":"")+" (plus récents sur cet appareil, jaquettes comprises)"+(gone?", "+gone+" ignoré"+(gone>1?"s":"")+" (supprimés depuis)":"")+".");
   }catch(err){alert("Fichier illisible.")}
 };
 newQuote();route();
