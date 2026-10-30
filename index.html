@@ -50,19 +50,19 @@ input,select{background:var(--card);border:1px solid var(--line);border-radius:1
 @media (min-width:860px){.grid{grid-template-columns:repeat(6,1fr)}}
 .disc{position:relative;border:0;padding:0;background:none;cursor:pointer;text-align:left}
 .cover{position:relative;border-radius:6px;overflow:hidden;background:var(--line);display:block;color:var(--mute);box-shadow:0 1px 3px rgba(0,0,0,.25)}
-.art{aspect-ratio:19/27;display:flex;align-items:center;justify-content:center;text-align:center;padding:6px;overflow:hidden;font:600 .75rem "Iowan Old Style",Georgia,serif;background:var(--line)}
+.art{aspect-ratio:2/3;display:flex;align-items:center;justify-content:center;text-align:center;padding:6px;overflow:hidden;font:600 .75rem "Iowan Old Style",Georgia,serif;background:var(--line)}
 .band{display:block;height:20px;background:var(--c);color:#fff;font:800 .64rem/20px system-ui;letter-spacing:.04em;text-align:center;white-space:nowrap;overflow:hidden;border-bottom:1px solid rgba(0,0,0,.25)}
 .uhd .band{border-bottom-color:#444}
 .li .band{font-size:0;height:9px;line-height:9px}
 .ri .band{font-size:.5rem;height:14px;line-height:14px}
 .fcover .band{height:26px;line-height:26px;font-size:.8rem}
 .art img{width:100%;height:100%;object-fit:contain;display:block}
-.art.sp{padding:0;background-size:1000% 1000%;background-repeat:no-repeat}
+.art.sp{aspect-ratio:19/27;padding:0;background-size:1000% 1000%;background-repeat:no-repeat}
 .disc.seen .art{opacity:.55}
 .dup{position:absolute;right:5px;top:26px;z-index:2;background:#f08c00;color:#fff;font:700 .62rem system-ui;padding:2px 5px;border-radius:4px}
 .dvd{--c:var(--dvd)}.br{--c:var(--br)}.uhd{--c:var(--uhd)}.grave{--c:var(--grave)}.mkv{--c:var(--mkv)}
 .empty{grid-column:1/-1;text-align:center;color:var(--mute);padding:40px 10px}
-.fab{position:fixed;right:16px;bottom:calc(72px + env(safe-area-inset-bottom));z-index:40;box-shadow:0 4px 14px rgba(0,0,0,.35);padding:14px 20px;border-radius:99px}
+.fab{position:fixed;right:16px;bottom:calc(72px + env(safe-area-inset-bottom));z-index:40;box-shadow:0 4px 14px rgba(0,0,0,.35);padding:0;width:56px;height:56px;border-radius:50%;font-size:2rem;line-height:1;display:flex;align-items:center;justify-content:center}
 dialog{width:min(94vw,520px);max-height:88vh;overflow:auto;background:var(--card);color:var(--ink);border:0;border-radius:14px;padding:16px}
 dialog::backdrop{background:rgba(0,0,0,.55)}
 dialog h2{margin:0 0 10px;font:700 1.15rem "Iowan Old Style",Georgia,serif}
@@ -99,7 +99,7 @@ dialog h2{margin:0 0 10px;font:700 1.15rem "Iowan Old Style",Georgia,serif}
 .fbar{position:sticky;top:env(safe-area-inset-top);z-index:5;display:flex;gap:10px;align-items:center;background:var(--bg);padding:10px 0;margin-bottom:8px;border-bottom:1px solid var(--line)}
 .fbar .ft{font-weight:700;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hero{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start}
-.fcover{width:min(46vw,240px);flex:none;cursor:zoom-in}
+.fcover{width:min(54vw,280px);flex:none;cursor:zoom-in}
 .hero .side{flex:1 1 220px;min-width:0;display:grid;gap:10px}
 .hero h1{font-size:1.5rem}
 .meta{color:var(--mute);font-size:.9rem}
@@ -132,10 +132,10 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;display
 .tl{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .imdb{display:inline-block;background:#f5c518;color:#000;font:800 .8rem system-ui;padding:4px 9px;border-radius:6px;text-decoration:none;white-space:nowrap}
 details.rc summary{cursor:pointer;font-weight:600}
-#tabbar{position:fixed;left:0;right:0;bottom:0;z-index:50;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
-.tb{flex:1;background:none;border:0;padding:8px 4px 7px;display:flex;flex-direction:column;align-items:center;gap:1px;font-size:.72rem;font-weight:700;color:var(--mute);cursor:pointer}
-.tb .ti{font-size:1.35rem;line-height:1.2}
-.tb.on{color:var(--acc)}
+#tabbar{position:fixed;left:0;right:0;bottom:0;z-index:50;display:flex;background:#000;border-top:1px solid #2a2a2a;padding-bottom:env(safe-area-inset-bottom)}
+.tb{flex:1;background:none;border:0;border-top:2px solid transparent;padding:8px 4px 7px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.72rem;font-weight:700;color:#fff;opacity:.55;cursor:pointer}
+.tb svg{display:block}
+.tb.on{opacity:1;border-top-color:#fff}
 .scope{display:flex;justify-content:space-between;align-items:center;background:var(--ink);color:var(--bg);border-radius:10px;padding:6px 6px 6px 12px;margin-bottom:10px;font-weight:600}
 .scope button{background:none;border:0;color:inherit;font-weight:600;cursor:pointer;padding:6px 10px}
 .shelf{margin:18px 0}
@@ -145,6 +145,8 @@ details.rc summary{cursor:pointer;font-weight:600}
 .tonight .ri,.tonight .ri .cover{width:104px}
 .tn{display:grid;gap:6px;min-width:0;flex:1}
 .tt{font:700 1.1rem/1.2 "Iowan Old Style",Georgia,serif}
+.setwrap{margin-top:26px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.setwrap>summary{cursor:pointer;font:700 1.05rem "Iowan Old Style",Georgia,serif}
 .lrow{display:flex;gap:8px;align-items:center;border-top:1px solid var(--line);padding:8px 0}
 .lrow input{flex:1}
 </style>
@@ -153,7 +155,7 @@ details.rc summary{cursor:pointer;font-weight:600}
 <button class="qband" id="qband" type="button" aria-label="Afficher une autre réplique"><span class="ql"><span id="qt"></span><span id="qs"></span></span></button>
 <main id="home">
 <div class="top"><div><h1>MOVY</h1>
-<p class="sub">Ma collection de films et séries.</p></div><div class="bar"><button class="btn ghost gear" id="listsBtn">Favoris</button><button class="btn ghost gear" id="gear" aria-label="Réglages">⚙</button></div></div>
+<p class="sub">Ma collection de films et séries.</p></div></div>
 <div class="scope" id="scopeBar" hidden><span id="scopeLbl"></span><button id="scopeX" type="button">✕ Retirer</button></div>
 <div class="tabs" id="tabs"></div>
 <div class="filters">
@@ -178,15 +180,49 @@ details.rc summary{cursor:pointer;font-weight:600}
 </main>
 
 <main id="more" hidden>
-<div class="top"><div><h1>Explorer</h1><p class="sub">Tes étagères : listes, séries, dessins animés…</p></div><div class="bar"><button class="btn ghost gear" id="listsBtn2">Favoris</button><button class="btn ghost gear" id="gear2" aria-label="Réglages">⚙</button></div></div>
+<div class="top"><div><h1>Explorer</h1><p class="sub">Tes étagères : listes, séries, dessins animés…</p></div><div class="bar"><button class="btn ghost gear" id="listsBtn2">Favoris</button></div></div>
 <div id="moreBody"></div>
+<details class="setwrap" id="setD"><summary>⚙ Réglages</summary>
+  <div class="sec">
+    <h3>TMDB</h3>
+    <div class="bar"><input id="tmdb" class="secret" type="text" name="tmdb-api" placeholder="Clé TMDB" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore><button class="btn" id="tmdbSave">Enregistrer</button></div>
+  </div>
+  <div class="sec">
+    <h3>Note IMDb</h3>
+    <div class="bar"><input id="omdb" class="secret" type="text" name="omdb-api" placeholder="Clé OMDb" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore><button class="btn" id="omdbSave">Enregistrer</button></div>
+  </div>
+  <div class="sec">
+    <details class="rc" id="recentD"><summary>Derniers ajouts</summary><div id="recent" style="margin-top:8px"></div></details>
+  </div>
+  <div class="sec">
+    <h3>Fiches des films</h3>
+    <p class="note" id="enrichSt"></p>
+    <button class="btn ghost" id="reload">Recharger toutes les fiches</button>
+  </div>
+  <div class="sec">
+    <h3>Synchronisation entre appareils</h3>
+    <p class="note">Ta liste est stockée dans un Gist privé de ton compte GitHub. <a href="https://github.com/settings/tokens/new?scopes=gist&description=dvdtheque" target="_blank" rel="noopener">Crée un jeton avec la seule autorisation « gist »</a>, puis colle le même jeton sur chaque appareil.</p>
+    <div class="bar"><input id="tok" class="secret" type="text" name="gh-token" placeholder="Jeton GitHub" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore><button class="btn" id="syncOn">Activer</button></div>
+    <div class="bar"><button class="btn ghost" id="syncNow">Synchroniser maintenant</button><button class="btn ghost" id="syncOff">Désactiver</button></div>
+    <div class="st note" id="syncSt"></div>
+  </div>
+  <div class="sec">
+    <h3>Sauvegarde</h3>
+    <div class="bar"><button class="btn ghost" id="exp">Exporter (JSON)</button><button class="btn ghost" id="impBtn">Importer</button><input type="file" id="imp" accept="application/json" hidden></div>
+  </div>
+  <div class="sec">
+    <h3>Application</h3>
+    <p class="note" id="verTxt"></p>
+    <button class="btn ghost" id="upd">Mettre à jour l'application</button>
+  </div>
+</details>
 </main>
 
 <section id="film" hidden></section>
 
-<button class="btn fab" id="fab">＋ Ajouter un disque</button>
+<button class="btn fab" id="fab" aria-label="Ajouter un disque">＋</button>
 
-<nav id="tabbar" aria-label="Navigation"><button class="tb on" id="tbHome" type="button"><span class="ti" aria-hidden="true">🎞️</span><span>Accueil</span></button><button class="tb" id="tbMore" type="button"><span class="ti" aria-hidden="true">✨</span><span>Explorer</span></button></nav>
+<nav id="tabbar" aria-label="Navigation"><button class="tb on" id="tbHome" type="button"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg><span>Accueil</span></button><button class="tb" id="tbMore" type="button"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg><span>Explorer</span></button></nav>
 
 <dialog id="addD">
   <button class="btn ghost close" id="addX">Fermer</button>
@@ -218,37 +254,7 @@ details.rc summary{cursor:pointer;font-weight:600}
   <div class="bar"><input id="code" inputmode="numeric" placeholder="Ou saisis les chiffres du code" aria-label="Code-barre"><button class="btn" id="codeGo">OK</button></div>
 </dialog>
 
-<dialog id="setD">
-  <button class="btn ghost close" id="setX">Fermer</button>
-  <h2>Réglages</h2>
-  <div class="sec">
-    <h3>TMDB</h3>
-    <div class="bar"><input id="tmdb" class="secret" type="text" name="tmdb-api" placeholder="Clé TMDB" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore><button class="btn" id="tmdbSave">Enregistrer</button></div>
-  </div>
-  <div class="sec">
-    <h3>Note IMDb</h3>
-    <div class="bar"><input id="omdb" class="secret" type="text" name="omdb-api" placeholder="Clé OMDb" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore><button class="btn" id="omdbSave">Enregistrer</button></div>
-  </div>
-  <div class="sec">
-    <details class="rc" id="recentD"><summary>Derniers ajouts</summary><div id="recent" style="margin-top:8px"></div></details>
-  </div>
-  <div class="sec">
-    <h3>Fiches des films</h3>
-    <p class="note" id="enrichSt"></p>
-    <button class="btn ghost" id="reload">Recharger toutes les fiches</button>
-  </div>
-  <div class="sec">
-    <h3>Synchronisation entre appareils</h3>
-    <p class="note">Ta liste est stockée dans un Gist privé de ton compte GitHub. <a href="https://github.com/settings/tokens/new?scopes=gist&description=dvdtheque" target="_blank" rel="noopener">Crée un jeton avec la seule autorisation « gist »</a>, puis colle le même jeton sur chaque appareil.</p>
-    <div class="bar"><input id="tok" class="secret" type="text" name="gh-token" placeholder="Jeton GitHub" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore><button class="btn" id="syncOn">Activer</button></div>
-    <div class="bar"><button class="btn ghost" id="syncNow">Synchroniser maintenant</button><button class="btn ghost" id="syncOff">Désactiver</button></div>
-    <div class="st note" id="syncSt"></div>
-  </div>
-  <div class="sec">
-    <h3>Sauvegarde</h3>
-    <div class="bar"><button class="btn ghost" id="exp">Exporter (JSON)</button><button class="btn ghost" id="impBtn">Importer</button><input type="file" id="imp" accept="application/json" hidden></div>
-  </div>
-</dialog>
+
 
 <dialog id="listD">
   <button class="btn ghost close" id="listX">Fermer</button>
@@ -795,8 +801,10 @@ function coverChoices(i,withCur){
   if(withCur!==false&&i.cover&&/^http/.test(i.cover))add(i.cover);
   return out;
 }
-function setCover(i,u){i.cover=/image\.tmdb\.org\/t\/p\/w\d+\//.test(u)?u.replace(/\/t\/p\/w\d+\//,"/t/p/w500/"):u;save(i);showFilm(i);render()}
-function pickIn(i,text,cap){const fi=el("input",{type:"file",accept:"image/*",hidden:true});if(cap)fi.setAttribute("capture","environment");fi.onchange=async()=>{if(fi.files[0]){try{i.cover=await thumb(fi.files[0]);save(i);showFilm(i);render()}catch(e){alert("Photo illisible.")}}};return el("label",{class:"btn ghost",style:"flex:1;text-align:center"},text,fi)}
+function pushCoverHist(i){if(i.cover)i.coverHist=[i.cover,...(i.coverHist||[]).filter(u=>u!==i.cover)].slice(0,4)}
+function undoCover(i){const h=i.coverHist||[];if(!h.length)return;i.cover=h[0];i.coverHist=h.slice(1);save(i);showFilm(i);render()}
+function setCover(i,u){pushCoverHist(i);i.cover=/image\.tmdb\.org\/t\/p\/w\d+\//.test(u)?u.replace(/\/t\/p\/w\d+\//,"/t/p/w500/"):u;save(i);showFilm(i);render()}
+function pickIn(i,text,cap){const fi=el("input",{type:"file",accept:"image/*",hidden:true});if(cap)fi.setAttribute("capture","environment");fi.onchange=async()=>{if(fi.files[0]){try{const c=await thumb(fi.files[0]);pushCoverHist(i);i.cover=c;save(i);showFilm(i);render()}catch(e){alert("Photo illisible.")}}};return el("label",{class:"btn ghost",style:"flex:1;text-align:center"},text,fi)}
 function fillDyn(i){
   const inf=i.info,box=$("fInfo");if(!box)return;
   box.innerHTML="";
@@ -826,6 +834,8 @@ function fillDyn(i){
   if(cands.length)cb.appendChild(el("div",{class:"picks",style:"margin-bottom:8px"},cands.map(u=>el("img",{src:thumbOf(u),alt:"Jaquette proposée",class:sameImg(u,i.cover)?"on":"",onclick:()=>setCover(i,u),onerror:function(){this.remove()}}))));
   cb.appendChild(el("p",{class:"note",style:"margin:0 0 8px"},cands.length?"Touche une image pour l'utiliser comme jaquette.":"Aucune image proposée pour l'instant."+(tmKey()?"":" Une clé TMDB (réglages) donne plus de choix.")));
   cb.appendChild(el("div",{class:"bar",style:"margin:0"},pickIn(i,"Prendre une photo",true),pickIn(i,"Ma photothèque",false)));
+  const hist=i.coverHist||[];
+  if(hist.length)cb.appendChild(el("button",{class:"btn ghost",style:"width:100%;display:flex;gap:10px;align-items:center;justify-content:center",onclick:()=>undoCover(i)},el("img",{src:thumbOf(hist[0]),alt:"",style:"height:36px;border-radius:3px"}),"↩ Revenir à la jaquette précédente"));
   fillRecs(i);
 }
 /* recommandations */
@@ -940,7 +950,7 @@ function openLists(){
   });
   if(!$("listD").open)$("listD").showModal();
 }
-$("listsBtn").onclick=openLists;$("listX").onclick=()=>$("listD").close();
+$("listX").onclick=()=>$("listD").close();
 $("newListGo").onclick=()=>{const v=$("newList").value.trim();if(!v){$("newList").focus();return}if(newList(v)){$("newList").value="";openLists();render()}};
 $("newList").addEventListener("keydown",e=>{if(e.key==="Enter")$("newListGo").click()});
 
@@ -978,8 +988,7 @@ function render(){
     return true;
   });
   shown.sort(SORTS[$("sort").value]||SORTS.az);
-  const nd=items.filter(i=>dupIds.has(i.id)).length;
-  $("stats").textContent=shown.length+" disque"+(shown.length>1?"s":"")+(items.length!==shown.length?" sur "+items.length:"")+(nd?" · "+nd+" en doublon":"")+(enrichRun?" · fiches en cours de chargement…":"");
+  $("stats").textContent=shown.length+" disque"+(shown.length>1?"s":"")+(items.length!==shown.length?" sur "+items.length:"")+(enrichRun?" · fiches en cours de chargement…":"");
   const g=$("grid");g.innerHTML="";g.className=view==="grid"?"grid":"list";
   if(!shown.length){g.innerHTML='<div class="empty">'+(items.length?"Aucun disque ne correspond.":"Ta collection est vide. Appuie sur « Ajouter un disque » pour commencer.")+"</div>";return}
   shown.forEach(i=>{
@@ -1017,7 +1026,7 @@ function tonight(){
   pick();return card;
 }
 function renderMore(){
-  const box=$("moreBody");box.innerHTML="";computeDups();
+  const box=$("moreBody");box.innerHTML="";computeDups();fillSettings();
   if(!items.length){box.appendChild(el("p",{class:"note"},"Ajoute quelques disques : tes étagères (listes, séries, dessins animés…) apparaîtront ici."));return}
   box.appendChild(tonight());
   const byTitle=(a,b)=>a.title.localeCompare(b.title,"fr");
@@ -1081,10 +1090,13 @@ function fillRecent(){
   const l=[...items].sort((a,b)=>addedTs(b)-addedTs(a)).slice(0,30);
   if(!l.length){box.appendChild(el("p",{class:"note"},"Aucun disque pour l'instant."));return}
   l.forEach(i=>{const d=addedTs(i),dt=d>1e11?new Date(d).toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"}):"";
-    box.appendChild(el("button",{class:"li "+i.format,style:"width:100%;margin-bottom:8px",onclick:()=>{$("setD").close();openFilm(i.id)}},mkCover(i),el("div",{class:"tx"},el("div",{class:"t"},i.title),el("div",{class:"m"},[FMT[i.format],dt].filter(Boolean).join(" · ")))))});
+    box.appendChild(el("button",{class:"li "+i.format,style:"width:100%;margin-bottom:8px",onclick:()=>openFilm(i.id)},mkCover(i),el("div",{class:"tx"},el("div",{class:"t"},i.title),el("div",{class:"m"},[FMT[i.format],dt].filter(Boolean).join(" · ")))))});
 }
-function openSettings(){$("enrichSt").textContent=enrichText();fillRecent();$("setD").showModal()}
-$("gear").onclick=openSettings;$("gear2").onclick=openSettings;$("listsBtn2").onclick=()=>openLists();$("setX").onclick=()=>$("setD").close();
+const APP_VERSION="30/10/2026 · v4";
+function fillSettings(){$("enrichSt").textContent=enrichText();fillRecent();$("verTxt").textContent="Version affichée : "+APP_VERSION+". Après avoir remplacé index.html sur GitHub, attends environ 10 minutes, puis touche ce bouton. Ne supprime pas le raccourci de l'écran d'accueil : tes disques sont enregistrés dedans."}
+$("listsBtn2").onclick=()=>openLists();
+$("upd").onclick=async()=>{try{if(window.caches){for(const k of await caches.keys())await caches.delete(k)}const r=await fetch(location.pathname,{cache:"reload"});await r.text()}catch(e){}location.reload()};
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
 $("omdb").value=omdbKey();$("tmdb").value=tmKey();
 const saveKey=(btn,k,inp)=>{try{localStorage.setItem(k,inp.value.trim())}catch(e){}btn.textContent="Enregistrée";setTimeout(()=>btn.textContent="Enregistrer",1500)};
 $("omdbSave").onclick=()=>saveKey($("omdbSave"),OK,$("omdb"));
