@@ -18,13 +18,15 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{background:var(--bg)}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
-body::before{content:"";position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top);background:#000;z-index:60}
-#more{padding-top:calc(16px + env(safe-area-inset-top))}
-#film{padding-top:env(safe-area-inset-top)}
-.qband{display:block;width:100%;border:0;background:#000;color:#fff;text-align:center;padding:calc(13px + env(safe-area-inset-top)) 16px 8px;font:italic .74rem/1.3 Georgia,"Iowan Old Style",serif;cursor:pointer}
+#topbar{position:fixed;top:0;left:0;right:0;z-index:60;background:var(--bg);padding-top:env(safe-area-inset-top);border-bottom:1px solid transparent}
+#topbar.q{padding-top:calc(max(env(safe-area-inset-top),20px) + 30px);border-bottom-color:var(--line)}
+#home{padding-top:calc(14px + var(--topH,0px))}
+#more{padding-top:calc(16px + var(--topH,0px))}
+.qband{display:block;width:100%;border:0;background:none;color:var(--ink);text-align:center;padding:0 16px 10px;font:italic .8rem/1.35 Georgia,"Iowan Old Style",serif;cursor:pointer}
 .qband .ql{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.qband #qs{opacity:.65;font-style:normal;font-size:.68rem}
-main,#film{max-width:900px;margin:0 auto;padding:16px 12px calc(150px + env(safe-area-inset-bottom))}
+.qband #qs{opacity:.6;font-style:normal;font-size:.7rem}
+main,#film{max-width:900px;margin:0 auto;padding:16px 12px calc(110px + env(safe-area-inset-bottom))}
+#film{padding-top:var(--topH,0px)}
 h1{font:700 1.6rem/1.1 "Iowan Old Style",Georgia,serif;margin:0 0 2px}
 .sub{color:var(--mute);margin:0 0 14px;font-size:.9rem}
 input,select,button{font:inherit;color:var(--ink)}
@@ -50,19 +52,20 @@ input,select{background:var(--card);border:1px solid var(--line);border-radius:1
 @media (min-width:860px){.grid{grid-template-columns:repeat(6,1fr)}}
 .disc{position:relative;border:0;padding:0;background:none;cursor:pointer;text-align:left}
 .cover{position:relative;border-radius:6px;overflow:hidden;background:var(--line);display:block;color:var(--mute);box-shadow:0 1px 3px rgba(0,0,0,.25)}
-.art{aspect-ratio:2/3;display:flex;align-items:center;justify-content:center;text-align:center;padding:6px;overflow:hidden;font:600 .75rem "Iowan Old Style",Georgia,serif;background:var(--line)}
+.art{aspect-ratio:2/3;display:flex;align-items:center;justify-content:center;text-align:center;padding:0;overflow:hidden;font:600 .75rem "Iowan Old Style",Georgia,serif;background:var(--line)}
 .band{display:block;height:20px;background:var(--c);color:#fff;font:800 .64rem/20px system-ui;letter-spacing:.04em;text-align:center;white-space:nowrap;overflow:hidden;border-bottom:1px solid rgba(0,0,0,.25)}
 .uhd .band{border-bottom-color:#444}
 .li .band{font-size:0;height:9px;line-height:9px}
 .ri .band{font-size:.5rem;height:14px;line-height:14px}
 .fcover .band{height:26px;line-height:26px;font-size:.8rem}
-.art img{width:100%;height:100%;object-fit:contain;display:block}
+.art img{width:100%;height:100%;object-fit:cover;display:block}
+.at{padding:6px}
 .art.sp{aspect-ratio:19/27;padding:0;background-size:1000% 1000%;background-repeat:no-repeat}
 .disc.seen .art{opacity:.55}
 .dup{position:absolute;right:5px;top:26px;z-index:2;background:#f08c00;color:#fff;font:700 .62rem system-ui;padding:2px 5px;border-radius:4px}
 .dvd{--c:var(--dvd)}.br{--c:var(--br)}.uhd{--c:var(--uhd)}.grave{--c:var(--grave)}.mkv{--c:var(--mkv)}
 .empty{grid-column:1/-1;text-align:center;color:var(--mute);padding:40px 10px}
-.fab{position:fixed;right:16px;bottom:calc(72px + env(safe-area-inset-bottom));z-index:40;box-shadow:0 4px 14px rgba(0,0,0,.35);padding:0;width:56px;height:56px;border-radius:50%;font-size:2rem;line-height:1;display:flex;align-items:center;justify-content:center}
+.fab{position:fixed;right:16px;bottom:calc(46px + env(safe-area-inset-bottom));z-index:40;box-shadow:0 4px 14px rgba(0,0,0,.35);padding:0;width:56px;height:56px;border-radius:50%;font-size:2rem;line-height:1;display:flex;align-items:center;justify-content:center}
 dialog{width:min(94vw,520px);max-height:88vh;overflow:auto;background:var(--card);color:var(--ink);border:0;border-radius:14px;padding:16px}
 dialog::backdrop{background:rgba(0,0,0,.55)}
 dialog h2{margin:0 0 10px;font:700 1.15rem "Iowan Old Style",Georgia,serif}
@@ -96,7 +99,7 @@ dialog h2{margin:0 0 10px;font:700 1.15rem "Iowan Old Style",Georgia,serif}
 .picks img{height:120px;border-radius:6px;border:3px solid transparent;cursor:pointer;flex:none}
 .picks img.on{border-color:var(--acc)}
 /* page film */
-.fbar{position:sticky;top:env(safe-area-inset-top);z-index:5;display:flex;gap:10px;align-items:center;background:var(--bg);padding:10px 0;margin-bottom:8px;border-bottom:1px solid var(--line)}
+.fbar{position:sticky;top:var(--topH,0px);z-index:5;display:flex;gap:10px;align-items:center;background:var(--bg);padding:10px 0;margin-bottom:8px;border-bottom:1px solid var(--line)}
 .fbar .ft{font-weight:700;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hero{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start}
 .fcover{width:min(54vw,280px);flex:none;cursor:zoom-in}
@@ -133,7 +136,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;display
 .imdb{display:inline-block;background:#f5c518;color:#000;font:800 .8rem system-ui;padding:4px 9px;border-radius:6px;text-decoration:none;white-space:nowrap}
 details.rc summary{cursor:pointer;font-weight:600}
 #tabbar{position:fixed;left:0;right:0;bottom:0;z-index:50;display:flex;background:#000;border-top:1px solid #2a2a2a;padding-bottom:env(safe-area-inset-bottom)}
-.tb{flex:1;background:none;border:0;border-top:2px solid transparent;padding:8px 4px 7px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.72rem;font-weight:700;color:#fff;opacity:.55;cursor:pointer}
+.tb{flex:1;background:none;border:0;border-top:2px solid transparent;padding:5px 4px 4px;display:flex;align-items:center;justify-content:center;color:#fff;opacity:.55;cursor:pointer}
 .tb svg{display:block}
 .tb.on{opacity:1;border-top-color:#fff}
 .scope{display:flex;justify-content:space-between;align-items:center;background:var(--ink);color:var(--bg);border-radius:10px;padding:6px 6px 6px 12px;margin-bottom:10px;font-weight:600}
@@ -152,10 +155,10 @@ details.rc summary{cursor:pointer;font-weight:600}
 </style>
 </head>
 <body>
-<button class="qband" id="qband" type="button" aria-label="Afficher une autre réplique"><span class="ql"><span id="qt"></span><span id="qs"></span></span></button>
+<div id="topbar" class="q"><button class="qband" id="qband" type="button" aria-label="Afficher une autre réplique"><span class="ql"><span id="qt"></span><span id="qs"></span></span></button></div>
 <main id="home">
 <div class="top"><div><h1>MOVY</h1>
-<p class="sub">Ma collection de films et séries.</p></div></div>
+<p class="sub">Ma collection de films et séries.</p></div><button class="btn ghost gear" id="view" type="button">☰ Liste</button></div>
 <div class="scope" id="scopeBar" hidden><span id="scopeLbl"></span><button id="scopeX" type="button">✕ Retirer</button></div>
 <div class="tabs" id="tabs"></div>
 <div class="filters">
@@ -163,17 +166,14 @@ details.rc summary{cursor:pointer;font-weight:600}
   <button class="btn ghost" id="fbtn">Filtres</button>
 </div>
 <div class="fpanel" id="fpanel" hidden>
+  <select id="sort" aria-label="Trier"><option value="az">Titre A → Z</option><option value="za">Titre Z → A</option><option value="yd">Année (récent)</option><option value="ya">Année (ancien)</option><option value="rate">Ma note</option><option value="imdb">Note IMDb</option><option value="new">Ajoutés récemment</option></select>
+  <select id="list" aria-label="Liste"><option value="">Toutes les listes</option></select>
   <select id="seen" aria-label="Statut"><option value="">Vus et à voir</option><option value="no">À voir</option><option value="yes">Déjà vus</option></select>
   <select id="age" aria-label="Classification"><option value="">Tous publics</option><option value="tp">Tout public</option><option value="10">Interdit -10 ans</option><option value="12">Interdit -12 ans</option><option value="16">Interdit -16 ans</option><option value="18">Interdit -18 ans</option><option value="none">Non renseigné</option></select>
   <select id="genre" aria-label="Genre"><option value="">Tous genres</option></select>
   <select id="decade" aria-label="Période"><option value="">Toutes années</option></select>
   <label class="chk"><input type="checkbox" id="dupOnly"> Seulement les doublons</label>
   <button class="btn ghost" id="fclear" style="grid-column:1/-1">Réinitialiser les filtres</button>
-</div>
-<div class="filters2">
-  <select id="sort" aria-label="Trier"><option value="az">Titre A → Z</option><option value="za">Titre Z → A</option><option value="yd">Année (récent)</option><option value="ya">Année (ancien)</option><option value="rate">Ma note</option><option value="imdb">Note IMDb</option><option value="new">Ajoutés récemment</option></select>
-  <select id="list" aria-label="Liste"><option value="">Toutes les listes</option></select>
-  <button class="btn ghost" id="view">☰ Liste</button>
 </div>
 <div class="stats" id="stats"></div>
 <div class="grid" id="grid"></div>
@@ -222,7 +222,7 @@ details.rc summary{cursor:pointer;font-weight:600}
 
 <button class="btn fab" id="fab" aria-label="Ajouter un disque">＋</button>
 
-<nav id="tabbar" aria-label="Navigation"><button class="tb on" id="tbHome" type="button"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg><span>Accueil</span></button><button class="tb" id="tbMore" type="button"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg><span>Explorer</span></button></nav>
+<nav id="tabbar" aria-label="Navigation"><button class="tb on" id="tbHome" type="button" aria-label="Accueil"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></button><button class="tb" id="tbMore" type="button" aria-label="Explorer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg></button></nav>
 
 <dialog id="addD">
   <button class="btn ghost close" id="addX">Fermer</button>
@@ -327,14 +327,16 @@ function img(src,alt){const i=document.createElement("img");i.src=src;i.alt=alt;
 function fillCover(e,c,t){
   const m=/^sp:(\d+):(\d+)$/.exec(c||"");
   if(m){const p=+m[2];e.classList.add("sp");e.style.backgroundImage="url(s"+m[1]+".jpg)";e.style.backgroundPosition=((p%10)/9*100)+"% "+(Math.floor(p/10)/9*100)+"%";e.setAttribute("role","img");e.setAttribute("aria-label",t)}
-  else if(c)e.appendChild(img(c,t));else e.textContent=t;
+  else if(c)e.appendChild(img(c,t));else e.appendChild(el("span",{class:"at"},t));
 }
 function thumb(file){return new Promise((ok,ko)=>{const r=new FileReader();r.onerror=ko;r.onload=()=>{const im=new Image();im.onerror=ko;im.onload=()=>{const w=Math.min(320,im.width),h=Math.round(im.height*w/im.width),c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(im,0,0,w,h);ok(c.toDataURL("image/jpeg",.7))};im.src=r.result};r.readAsDataURL(file)})}
 
 /* ---------- Répliques cultes (bandeau noir de l'accueil) ---------- */
 const QUOTES=[["Je suis ton père.","Star Wars, épisode V"],["Que la Force soit avec toi.","Star Wars"],["I'll be back.","Terminator"],["Hasta la vista, baby.","Terminator 2"],["Houston, nous avons un problème.","Apollo 13"],["Rosebud.","Citizen Kane"],["On aura toujours Paris.","Casablanca"],["Louis, je crois que c'est le début d'une grande amitié.","Casablanca"],["Je vais lui faire une offre qu'il ne pourra pas refuser.","Le Parrain"],["La vie, c'est comme une boîte de chocolats : on ne sait jamais sur quoi on va tomber.","Forrest Gump"],["Mon précieux.","Le Seigneur des anneaux"],["Vous ne passerez pas !","Le Seigneur des anneaux"],["Vers l'infini et au-delà !","Toy Story"],["Je suis le roi du monde !","Titanic"],["E.T. téléphone maison.","E.T. l'extra-terrestre"],["Mon nom est Bond. James Bond.","James Bond"],["Atmosphère ? Atmosphère ? Est-ce que j'ai une gueule d'atmosphère ?","Hôtel du Nord"],["Les cons, ça ose tout. C'est même à ça qu'on les reconnaît.","Les Tontons flingueurs"],["Ils sont fous, ces Romains !","Astérix"],["Tu parles à moi ?","Taxi Driver"],["Un grand pouvoir implique de grandes responsabilités.","Spider-Man"],["Show me the money !","Jerry Maguire"],["Là où on va, on n'a pas besoin de route.","Retour vers le futur"],["J'ai vu des choses que vous, humains, ne pourriez pas croire.","Blade Runner"],["Dans l'espace, personne ne vous entend crier.","Alien"]];
 let qLast=-1;
-function newQuote(){let n;do{n=Math.floor(Math.random()*QUOTES.length)}while(n===qLast&&QUOTES.length>1);qLast=n;$("qt").textContent="« "+QUOTES[n][0]+" »";$("qs").textContent=" — "+QUOTES[n][1]}
+function fitTop(){document.documentElement.style.setProperty("--topH",Math.round($("topbar").getBoundingClientRect().height)+"px")}
+window.addEventListener("resize",fitTop);
+function newQuote(){let n;do{n=Math.floor(Math.random()*QUOTES.length)}while(n===qLast&&QUOTES.length>1);qLast=n;$("qt").textContent="« "+QUOTES[n][0]+" »";$("qs").textContent=" — "+QUOTES[n][1];fitTop()}
 $("qband").onclick=newQuote;
 
 /* ---------- Séries, saisons, types ---------- */
@@ -577,6 +579,24 @@ async function decodePhoto(file){
   }catch(err){setScan(err&&err.message==="zxing"?"Le lecteur n'a pas pu se charger (connexion ?). Saisis les chiffres du code.":"Photo illisible, réessaie.")}
 }));
 
+async function getRes(url,ms){const ac=new AbortController(),t=setTimeout(()=>ac.abort(),ms||9000);try{return await fetch(url,{signal:ac.signal})}finally{clearTimeout(t)}}
+async function lookupUpc(code){
+  const base="https://api.upcitemdb.com/prod/trial/lookup?upc="+encodeURIComponent(code);
+  const routes=[base,"https://corsproxy.io/?url="+encodeURIComponent(base),"https://api.allorigins.win/raw?url="+encodeURIComponent(base)];
+  let limit=false,err="";
+  for(const u of routes){
+    try{
+      const r=await getRes(u,9000);
+      if(r.status===429){limit=true;continue}
+      if(!r.ok){err="erreur "+r.status;continue}
+      const j=await r.json();
+      if(j&&Array.isArray(j.items))return {item:j.items[0]||null};
+      if(j&&j.code==="EXCEED_LIMIT"){limit=true;continue}
+      err="réponse inattendue";
+    }catch(e){err=(e&&e.name==="AbortError")?"délai dépassé":(e&&e.name==="SyntaxError")?"réponse illisible":"service injoignable"}
+  }
+  const x=new Error(limit?"limite":err||"indisponible");x.limit=limit;throw x;
+}
 async function onCode(code){
   stopScan();if($("scanD").open)$("scanD").close();
   const out=$("res"),pk=$("pick");pk.innerHTML="";pendingCover="";pendingCode=code;
@@ -586,10 +606,8 @@ async function onCode(code){
   const warn=have?"Attention : ce code-barre est déjà dans ta collection (« "+have.title+" », "+FMT[have.format]+"). ":"";
   out.textContent=warn+"Code "+code+" : recherche du produit…";
   try{
-    const ac=new AbortController(),tm_=setTimeout(()=>ac.abort(),9000);
-    let r;try{r=await fetch("https://api.upcitemdb.com/prod/trial/lookup?upc="+encodeURIComponent(code),{signal:ac.signal})}finally{clearTimeout(tm_)}
-    if(r.status===429){fail(warn+"Limite de recherches atteinte pour aujourd’hui.");return}
-    const j=await r.json();const it=(j.items||[])[0];
+    let it;
+    try{it=(await lookupUpc(code)).item}catch(e){fail(warn+(e.limit?"Limite de recherches atteinte pour aujourd’hui.":"La recherche en ligne n'a pas répondu ("+(e.message||"erreur")+").")+" Le code est gardé avec le disque.");return}
     if(!it||!it.title){fail(warn+"Code non reconnu par la base.");return}
     const raw=it.title,low=raw.toLowerCase();
     if(/4k|uhd/.test(low))$("fmt").value="uhd";else if(/blu-?ray/.test(low))$("fmt").value="br";else if(/dvd/.test(low))$("fmt").value="dvd";
@@ -598,7 +616,7 @@ async function onCode(code){
     out.textContent=warn+(imgs.length?"Produit trouvé. Touche la jaquette qui correspond, ou prends une photo.":"Produit trouvé, mais sans image. Prends la jaquette en photo.");
     imgs.forEach(u=>{const im=img(u,"Jaquette proposée");im.onclick=()=>{pk.querySelectorAll("img").forEach(x=>x.classList.remove("on"));im.classList.add("on");pendingCover=u};im.onerror=()=>im.remove();pk.appendChild(im)});
     suggest($("mt").value.trim());
-  }catch(e){fail(warn+"La recherche par code est bloquée ou indisponible ("+((e&&e.name==="AbortError")?"délai dépassé":(e&&e.message)||"erreur")+").")}
+  }catch(e){fail(warn+"Erreur pendant la recherche ("+((e&&e.message)||"inconnue")+").")}
 }
 
 /* ---------- Sources d'infos : TMDB, Wikidata, Wikipédia ---------- */
@@ -973,7 +991,7 @@ function render(){
   $("view").textContent=view==="grid"?"☰ Liste":"▦ Grille";$("qx").hidden=!$("q").value;
   $("scopeBar").hidden=!scope;if(scope)$("scopeLbl").textContent=scope.label;
   const toks=nrm($("q").value.trim()).split(/\s+/).filter(Boolean),sv=$("seen").value,gv=$("genre").value,av=$("age").value,dv=$("decade").value,lv=$("list").value,dOnly=$("dupOnly").checked;
-  const nf=[sv,av,gv,dv,dOnly?"1":""].filter(Boolean).length;
+  const nf=[sv,av,gv,dv,lv,dOnly?"1":"",$("sort").value!=="az"?"1":""].filter(Boolean).length;
   $("fbtn").textContent=nf?"Filtres ("+nf+")":"Filtres";
   const shown=items.filter(i=>{
     if(filter!=="tous"&&i.format!==filter)return false;
@@ -1008,7 +1026,7 @@ $("dupOnly").addEventListener("change",render);$("q").addEventListener("input",r
 $("qx").onclick=()=>{$("q").value="";render();$("q").focus()};
 $("scopeX").onclick=()=>{scope=null;render()};
 $("fbtn").onclick=()=>{$("fpanel").hidden=!$("fpanel").hidden};
-$("fclear").onclick=()=>{["seen","age","genre","decade"].forEach(id=>$(id).value="");$("dupOnly").checked=false;scope=null;render()};
+$("fclear").onclick=()=>{["seen","age","genre","decade","list"].forEach(id=>$(id).value="");$("sort").value="az";$("dupOnly").checked=false;scope=null;render()};
 $("view").onclick=()=>{view=view==="grid"?"list":"grid";try{localStorage.setItem("movy-view",view)}catch(e){}render()};
 
 /* ---------- Explorer (2e onglet) ---------- */
@@ -1057,7 +1075,7 @@ function route(){
   const m=/^#film=(.+)$/.exec(location.hash);
   const i=m&&items.find(x=>x.id===decodeURIComponent(m[1]));
   const v=i?"film":(location.hash==="#more"?"more":"home");
-  $("home").hidden=v!=="home";$("qband").hidden=v!=="home";$("fab").hidden=v!=="home";$("more").hidden=v!=="more";$("film").hidden=v!=="film";
+  $("home").hidden=v!=="home";$("qband").hidden=v!=="home";$("topbar").classList.toggle("q",v==="home");fitTop();$("fab").hidden=v!=="home";$("more").hidden=v!=="more";$("film").hidden=v!=="film";
   if(v==="film")showFilm(i);
   else{
     curFilm=null;setTab(v);
