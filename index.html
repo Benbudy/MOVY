@@ -97,6 +97,10 @@ dialog h2{margin:0 0 10px;font:700 1.15rem "Iowan Old Style",Georgia,serif}
 .picks{display:flex;gap:8px;overflow-x:auto}
 .picks img{height:120px;border-radius:6px;border:3px solid transparent;cursor:pointer;flex:none}
 .picks img.on{border-color:var(--acc)}
+.pk{flex:none;width:84px;height:120px;border:2px dashed var(--line);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;font:600 .72rem/1.2 system-ui;cursor:pointer;background:var(--card);color:var(--ink);padding:4px}
+.pk .ic{font-size:1.6rem}
+.picks .pk img{height:56px;border:0;border-radius:3px}
+#sugD img.big{width:46%;max-width:180px;border-radius:8px;float:left;margin:0 12px 8px 0}
 /* page film */
 .fbar{position:sticky;top:var(--topH,0px);z-index:5;display:flex;gap:10px;align-items:center;background:var(--bg);padding:10px 0;margin-bottom:8px;border-bottom:1px solid var(--line)}
 .fbar .ft{font-weight:700;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -208,14 +212,6 @@ details.rc summary{cursor:pointer;font-weight:600}
 <div id="setD">
   <div class="sec" style="border-top:0;margin-top:0;padding-top:0"><h3>Statistiques</h3><div class="stcar" id="stCar"></div><div class="stdots" id="stDots"></div></div>
   <div class="sec">
-    <h3>TMDB</h3>
-    <div class="bar"><input id="tmdb" class="secret" type="text" name="tmdb-api" placeholder="Clé TMDB" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore><button class="btn" id="tmdbSave">Enregistrer</button></div>
-  </div>
-  <div class="sec">
-    <h3>Note IMDb</h3>
-    <div class="bar"><input id="omdb" class="secret" type="text" name="omdb-api" placeholder="Clé OMDb" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore><button class="btn" id="omdbSave">Enregistrer</button></div>
-  </div>
-  <div class="sec">
     <details class="rc" id="recentD"><summary>Derniers ajouts</summary><div id="recent" style="margin-top:8px"></div></details>
   </div>
   <div class="sec">
@@ -238,6 +234,14 @@ details.rc summary{cursor:pointer;font-weight:600}
     <h3>Application</h3>
     <p class="note" id="verTxt"></p>
     <button class="btn ghost" id="upd">Mettre à jour l'application</button>
+  </div>
+  <div class="sec">
+    <h3>TMDB</h3>
+    <div class="bar"><input id="tmdb" class="secret" type="text" name="tmdb-api" placeholder="Clé TMDB" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore><button class="btn" id="tmdbSave">Enregistrer</button></div>
+  </div>
+  <div class="sec">
+    <h3>Note IMDb</h3>
+    <div class="bar"><input id="omdb" class="secret" type="text" name="omdb-api" placeholder="Clé OMDb" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore><button class="btn" id="omdbSave">Enregistrer</button></div>
   </div>
 </div>
 </main>
@@ -795,7 +799,7 @@ function showFilm(i){
   const imdbV=inf&&inf.imdb?parseFloat(inf.imdb):0;
   const chip=imdbV?el("a",{class:"imdb",id:"imdbChip",href:inf.imdbId?"https://www.imdb.com/title/"+inf.imdbId+"/":"https://www.imdb.com/find/?q="+encodeURIComponent(cleanTitle(i.title)),target:"_blank",rel:"noopener","aria-label":"Note IMDb "+imdbV},"IMDb ★ "+imdbV.toFixed(1)):null;
   const pills=el("div",{class:"tl"},i.age?el("span",{class:"pill a"+(i.age==="tp"?"":i.age),style:"margin:0"},AGES[i.age]):null,chip,dups.length?el("span",{class:"pill d",style:"margin:0"},"Doublon"):null);
-  const hero=el("div",{class:"hero"},cv,el("div",{class:"side"},el("h1",{style:"margin:0"},i.title),el("div",{class:"meta"},meta),pills,fs,sb,st));
+  const hero=el("div",{class:"hero"},cv,el("div",{class:"side"},el("h1",{style:"margin:0"},i.title),el("div",{class:"meta"},meta),pills,sb,st));
   box.append(el("div",{class:"fbar"},el("button",{class:"btn ghost",onclick:goBack},"← Retour"),el("div",{class:"ft"},i.title)),hero);
   if(dups.length)box.appendChild(el("div",{class:"warn",style:"margin-top:12px"},"Tu as ce film en "+(dups.length+1)+" exemplaires : "+[i,...dups].map(x=>FMT[x.format]).join(", ")+". ",...dups.map(d=>el("button",{class:"chip link",style:"margin-left:6px",onclick:()=>openFilm(d.id)},"Voir celui en "+FMT[d.format]))));
   /* listes */
@@ -806,13 +810,13 @@ function showFilm(i){
   /* type + saisons */
   box.appendChild(el("div",{class:"sec"},el("h3",null,"Type"),el("div",{class:"chips"},[["movie","Film"],["tv","Série"]].map(([k,l])=>el("button",{class:"chip","aria-pressed":(tvNow?"tv":"movie")===k,onclick:()=>{if((tvNow?"tv":"movie")===k)return;i.kind=k;i.pick=null;resetInfo(i);save(i);showFilm(i);render()}},l)))));
   if(tvNow)box.appendChild(seasonsSection(i));
-  /* classification */
-  const as=el("select",{"aria-label":"Classification",onchange:()=>{i.age=as.value;save(i);showFilm(i);render()}},el("option",{value:""},"Non renseignée"),Object.entries(AGES).map(([k,l])=>el("option",{value:k,selected:k===i.age},l)));
-  box.appendChild(el("div",{class:"sec"},el("h3",null,"Classification"),as));
   box.appendChild(el("div",{class:"sec",id:"fInfo"}));
   box.appendChild(el("div",{class:"sec",id:"fPhotos"}));
   box.appendChild(el("div",{class:"sec",id:"fCovers"}));
   box.appendChild(el("div",{class:"sec",id:"fRecs"}));
+  /* format + classification, juste au-dessus de Supprimer */
+  const as=el("select",{"aria-label":"Classification",onchange:()=>{i.age=as.value;save(i);showFilm(i);render()}},el("option",{value:""},"Non renseignée"),Object.entries(AGES).map(([k,l])=>el("option",{value:k,selected:k===i.age},l)));
+  box.appendChild(el("div",{class:"sec stack"},el("h3",null,"Format"),fs,el("h3",{style:"margin-top:6px"},"Classification"),as));
   /* gestion, puis tout à la fin : ce n'est pas le bon film */
   box.appendChild(el("div",{class:"sec stack"},
     el("button",{class:"btn danger",onclick:()=>{if(confirm("Supprimer « "+i.title+" » ?")){items=items.filter(z=>z.id!==i.id);del[i.id]=Date.now();save();goBack();render()}}},"Supprimer ce disque"),
@@ -851,7 +855,7 @@ function pushCoverHist(i){if(!i.cover)return;i.coverHist=[i.cover,...(i.coverHis
 function coverFail(e){alert("La jaquette n'a pas pu être changée"+(e&&e.message?" ("+e.message+")":"")+". Réessaie.")}
 function undoCover(i0){try{const i=live(i0),h=i.coverHist||[];if(!h.length)return;i.cover=h[0];i.coverHist=h.slice(1);save(i);showFilm(i);render()}catch(e){coverFail(e)}}
 function setCover(i0,u){try{const i=live(i0);pushCoverHist(i);i.cover=/image\.tmdb\.org\/t\/p\/w\d+\//.test(u)?u.replace(/\/t\/p\/w\d+\//,"/t/p/w500/"):u;save(i);showFilm(i);render()}catch(e){coverFail(e)}}
-function pickIn(i0,text,cap){const fi=el("input",{type:"file",accept:"image/*",hidden:true});if(cap)fi.setAttribute("capture","environment");fi.onchange=async()=>{const f=fi.files&&fi.files[0];if(!f)return;try{const c=await thumb(f);const i=live(i0);pushCoverHist(i);i.cover=c;save(i);showFilm(i);render()}catch(e){alert("Photo illisible. Essaie une autre image.")}};return el("label",{class:"btn ghost",style:"flex:1;text-align:center"},text,fi)}
+function pickIn(i0,text,cap){const fi=el("input",{type:"file",accept:"image/*",hidden:true});if(cap)fi.setAttribute("capture","environment");fi.onchange=async()=>{const f=fi.files&&fi.files[0];if(!f)return;try{const c=await thumb(f);const i=live(i0);pushCoverHist(i);i.cover=c;save(i);showFilm(i);render()}catch(e){alert("Photo illisible. Essaie une autre image.")}};return el("label",{class:"pk"},el("span",{class:"ic"},cap?"📷":"🖼"),text,fi)}
 function fillDyn(i){
   const inf=i.info,box=$("fInfo");if(!box)return;
   box.innerHTML="";
@@ -878,11 +882,12 @@ function fillDyn(i){
   const cb=$("fCovers");cb.innerHTML="";
   const cands=coverChoices(i);
   cb.appendChild(el("h3",null,"Jaquette"));
-  if(cands.length)cb.appendChild(el("div",{class:"picks",style:"margin-bottom:8px"},cands.map(u=>el("img",{src:thumbOf(u),alt:"Jaquette proposée",class:sameImg(u,i.cover)?"on":"",onclick:()=>setCover(i,u),onerror:function(){this.remove()}}))));
-  cb.appendChild(el("p",{class:"note",style:"margin:0 0 8px"},cands.length?"Touche une image pour l'utiliser comme jaquette.":"Aucune image proposée pour l'instant."+(tmKey()?"":" Une clé TMDB (réglages) donne plus de choix.")));
-  cb.appendChild(el("div",{class:"bar",style:"margin:0"},pickIn(i,"Prendre une photo",true),pickIn(i,"Ma photothèque",false)));
   const hist=i.coverHist||[];
-  if(hist.length)cb.appendChild(el("button",{class:"btn ghost",style:"width:100%;display:flex;gap:10px;align-items:center;justify-content:center",onclick:()=>undoCover(i)},el("img",{src:thumbOf(hist[0]),alt:"",style:"height:36px;border-radius:3px"}),"↩ Revenir à la jaquette précédente"));
+  cb.appendChild(el("div",{class:"picks",style:"margin-bottom:8px"},
+    cands.map(u=>el("img",{src:thumbOf(u),alt:"Jaquette proposée",class:sameImg(u,i.cover)?"on":"",onclick:()=>setCover(i,u),onerror:function(){this.remove()}})),
+    pickIn(i,"Photo",true),pickIn(i,"Photothèque",false),
+    hist.length?el("button",{class:"pk",type:"button",onclick:()=>undoCover(i)},el("img",{src:thumbOf(hist[0]),alt:""}),"↩ Précédente"):null));
+  cb.appendChild(el("p",{class:"note",style:"margin:0"},cands.length?"Touche une image pour l'utiliser comme jaquette, ou prends une photo.":"Aucune image proposée pour l'instant."+(tmKey()?"":" Une clé TMDB (réglages) donne plus de choix.")));
   fillRecs(i);
 }
 /* recommandations */
@@ -894,6 +899,21 @@ function localRecs(i){
     (g.cast||[]).forEach(n=>{if(cast.has(n))s+=2});
     (x.genres||"").split(",").map(z=>z.trim()).forEach(n=>{if(n&&gen.has(n))s+=1});
     return {x,s}}).filter(r=>r.s>0).sort((a,b)=>b.s-a.s||(b.x.rating||0)-(a.x.rating||0)).slice(0,10).map(r=>r.x);
+}
+const sugD=document.createElement("dialog");sugD.id="sugD";document.body.appendChild(sugD);
+function openSuggest(r){
+  const yy=(r.release_date||"").slice(0,4),poster=r.poster_path?TMG+"w500"+r.poster_path:"";
+  sugD.innerHTML="";
+  sugD.append(el("h2",null,r.title+(yy?" ("+yy+")":"")),
+    poster?el("img",{class:"big",src:poster,alt:r.title,onerror:function(){this.remove()}}):null,
+    r.vote_average?el("p",{class:"note",style:"margin:0 0 6px"},"Note TMDB : "+r.vote_average.toFixed(1)+" / 10"):null,
+    el("p",{style:"margin:0 0 10px"},r.overview||"Pas de résumé disponible."),
+    el("div",{style:"clear:both"}),
+    el("div",{class:"bar",style:"flex-wrap:wrap"},
+      el("button",{class:"btn",type:"button",onclick:()=>{sugD.close();openAdd({title:r.title,year:yy,cover:poster})}},"＋ Ajouter à ma collection"),
+      el("a",{class:"btn ghost",style:"text-decoration:none;text-align:center",href:"https://www.youtube.com/results?search_query="+encodeURIComponent(r.title+" "+yy+" bande annonce"),target:"_blank",rel:"noopener"},"Bande-annonce"),
+      el("button",{class:"btn ghost",type:"button",onclick:()=>sugD.close()},"Fermer")));
+  sugD.showModal();
 }
 async function fillRecs(i){
   const rb=$("fRecs");if(!rb)return;rb.innerHTML="";rb.hidden=false;
@@ -913,7 +933,7 @@ async function fillRecs(i){
       if(!rs.length){slot.appendChild(el("p",{class:"note"},"Aucune suggestion."));return}
       const row=el("div",{class:"rec"});
       rs.forEach(r=>{const c=plainCover(r.poster_path?TMG+"w185"+r.poster_path:"",r.title);const yy=(r.release_date||"").slice(0,4);
-        row.appendChild(el("div",{class:"ri"},c,el("div",{class:"rt"},r.title),el("div",{class:"m"},yy),el("button",{class:"chip",style:"margin-top:4px",onclick:()=>openAdd({title:r.title,year:yy,cover:r.poster_path?TMG+"w500"+r.poster_path:""})},"＋ Ajouter")))});
+        row.appendChild(el("div",{class:"ri"},el("button",{class:"ri",type:"button","aria-label":"Voir "+r.title,onclick:()=>openSuggest(r)},c,el("div",{class:"rt"},r.title),el("div",{class:"m"},yy)),el("button",{class:"chip",style:"margin-top:4px",onclick:()=>openAdd({title:r.title,year:yy,cover:r.poster_path?TMG+"w500"+r.poster_path:""})},"＋ Ajouter")))});
       slot.appendChild(row);
     }catch(e){slot.innerHTML="";slot.appendChild(el("p",{class:"note"},"Suggestions indisponibles (connexion ou clé ?)."))}
   }else if(!tmKey()){
@@ -1210,7 +1230,7 @@ function fillStats(){
   out.forEach((c,k)=>{car.appendChild(c);dots.appendChild(el("i",{class:k?"":"on"}))});
   car.onscroll=()=>{const w=(car.firstChild.offsetWidth||1)+10,k=Math.round(car.scrollLeft/w);[...dots.children].forEach((d,j)=>d.classList.toggle("on",j===k))};
 }
-const APP_VERSION="31/10/2026 · v7.1";
+const APP_VERSION="31/10/2026 · v7.2";
 function fillSettings(){computeDups();fillStats();$("enrichSt").textContent=enrichText();fillRecent();$("verTxt").textContent="Version affichée : "+APP_VERSION+". Après avoir remplacé index.html sur GitHub, attends environ 10 minutes, puis touche ce bouton. Ne supprime pas le raccourci de l'écran d'accueil : tes disques sont enregistrés dedans."}
 $("listD").addEventListener("close",()=>{if(curView==="more")renderMore();else if(curView==="home")render()});
 $("upd").onclick=async()=>{try{if(window.caches){for(const k of await caches.keys())await caches.delete(k)}const r=await fetch(location.pathname,{cache:"reload"});await r.text()}catch(e){}location.reload()};
