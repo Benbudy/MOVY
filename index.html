@@ -19,8 +19,8 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{background:var(--bg)}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
-#topbar{position:fixed;top:0;left:0;right:0;z-index:60;background:var(--bg);padding-top:env(safe-area-inset-top)}
-#home,#more,#settings{padding-top:calc(16px + var(--topH,0px))}
+#topbar{position:fixed;top:0;left:0;right:0;z-index:60;background:var(--bg);padding-top:calc(env(safe-area-inset-top) + 6px)}
+#home,#more,#settings{padding-top:calc(26px + var(--topH,0px))}
 .qband{display:block;width:100%;border:0;background:none;color:var(--ink);text-align:center;margin:2px 0 12px;padding:2px 10px;font:italic .84rem/1.35 Georgia,"Iowan Old Style",serif;cursor:pointer}
 .qband .ql{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .qband #qs{opacity:.6;font-style:normal;font-size:.7rem}
@@ -64,7 +64,7 @@ input,select{background:var(--card);border:1px solid var(--line);border-radius:1
 .dup{position:absolute;right:5px;top:26px;z-index:2;background:#f08c00;color:#fff;font:700 .62rem system-ui;padding:2px 5px;border-radius:4px}
 .dvd{--c:var(--dvd)}.br{--c:var(--br)}.uhd{--c:var(--uhd)}.grave{--c:var(--grave)}.mkv{--c:var(--mkv)}
 .empty{grid-column:1/-1;text-align:center;color:var(--mute);padding:40px 10px}
-.fab{position:fixed;right:16px;bottom:calc(60px + env(safe-area-inset-bottom));z-index:40;box-shadow:0 4px 14px rgba(0,0,0,.35);padding:0;width:56px;height:56px;border-radius:50%;font-size:2rem;line-height:1;display:flex;align-items:center;justify-content:center}
+.fab{position:fixed;right:16px;bottom:calc(60px + env(safe-area-inset-bottom));z-index:40;box-shadow:0 4px 14px rgba(0,0,0,.35);padding:0;width:56px;height:56px;border-radius:50%;font-size:2rem;line-height:1;display:flex;align-items:center;justify-content:center;background:#000;color:#fff;border:1px solid rgba(255,255,255,.28)}
 dialog{width:min(94vw,520px);max-height:88vh;overflow:auto;background:var(--card);color:var(--ink);border:0;border-radius:14px;padding:16px}
 dialog::backdrop{background:rgba(0,0,0,.55)}
 dialog h2{margin:0 0 10px;font:700 1.15rem "Iowan Old Style",Georgia,serif}
@@ -149,10 +149,31 @@ details.rc summary{cursor:pointer;font-weight:600}
 .tt{font:700 1.1rem/1.2 "Iowan Old Style",Georgia,serif}
 .lrow{display:flex;gap:8px;align-items:center;border-top:1px solid var(--line);padding:8px 0}
 .lrow input{flex:1}
+
+#az{position:fixed;right:2px;top:calc(var(--topH,0px) + 70px);bottom:calc(150px + env(safe-area-inset-bottom));max-height:470px;z-index:45;display:flex;flex-direction:column;justify-content:space-between;align-items:center;width:24px;padding:4px 0;border-radius:12px;background:rgba(120,120,128,.2);opacity:0;pointer-events:none;transition:opacity .2s;touch-action:none;user-select:none;-webkit-user-select:none}
+#az.show{opacity:1;pointer-events:auto}
+#az span{font:700 .62rem/1 system-ui;color:var(--acc)}
+#az span.off{opacity:.3}
+#azBub{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:84px;height:84px;border-radius:18px;background:rgba(0,0,0,.72);color:#fff;font:700 2.6rem/84px system-ui;text-align:center;z-index:70;pointer-events:none}
+.stcar{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 -12px;padding:0 12px 4px}
+.stcar::-webkit-scrollbar{display:none}
+.stc{flex:none;width:82%;max-width:340px;min-height:210px;scroll-snap-align:start;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+.stc h4{margin:0 0 4px;font:700 .8rem system-ui;color:var(--mute);text-transform:uppercase;letter-spacing:.05em}
+.stc .big{font:700 2.1rem/1.1 "Iowan Old Style",Georgia,serif;margin:2px 0 8px}
+.stc .big small{font:600 .9rem system-ui;color:var(--mute)}
+.sr{display:grid;grid-template-columns:96px 1fr auto;gap:8px;align-items:center;font-size:.82rem;margin:5px 0}
+.sr .lb{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sr .br2{height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.sr .br2 i{display:block;height:100%;background:var(--acc);border-radius:4px}
+.sr b{font-variant-numeric:tabular-nums}
+.stdots{display:flex;justify-content:center;gap:6px;margin-top:8px}
+.stdots i{width:7px;height:7px;border-radius:50%;background:var(--line)}
+.stdots i.on{background:var(--ink)}
 </style>
 </head>
 <body>
 <div id="topbar" aria-hidden="true"></div>
+<div id="az" aria-hidden="true"></div><div id="azBub" hidden></div>
 <main id="home">
 <div class="top"><div><h1>MOVY</h1>
 <p class="sub">Ma collection de films et séries.</p></div><button class="btn ghost gear" id="view" type="button">☰ Liste</button></div>
@@ -185,6 +206,7 @@ details.rc summary{cursor:pointer;font-weight:600}
 <main id="settings" hidden>
 <div class="top"><div><h1>Réglages</h1><p class="sub">Clés, synchronisation et sauvegarde.</p></div></div>
 <div id="setD">
+  <div class="sec" style="border-top:0;margin-top:0;padding-top:0"><h3>Statistiques</h3><div class="stcar" id="stCar"></div><div class="stdots" id="stDots"></div></div>
   <div class="sec">
     <h3>TMDB</h3>
     <div class="bar"><input id="tmdb" class="secret" type="text" name="tmdb-api" placeholder="Clé TMDB" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore><button class="btn" id="tmdbSave">Enregistrer</button></div>
@@ -224,7 +246,7 @@ details.rc summary{cursor:pointer;font-weight:600}
 
 <button class="btn fab" id="fab" aria-label="Ajouter un disque">＋</button>
 
-<nav id="tabbar" aria-label="Navigation"><button class="tb on" id="tbHome" type="button" aria-label="Accueil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></button><button class="tb" id="tbMore" type="button" aria-label="Explorer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg></button><button class="tb" id="tbSet" type="button" aria-label="Réglages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></nav>
+<nav id="tabbar" aria-label="Navigation"><button class="tb on" id="tbHome" type="button" aria-label="Accueil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></button><button class="tb" id="tbMore" type="button" aria-label="Explorer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg></button><button class="tb" id="tbSet" type="button" aria-label="Réglages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg></button></nav>
 
 <dialog id="addD">
   <button class="btn ghost close" id="addX">Fermer</button>
@@ -331,7 +353,7 @@ function fillCover(e,c,t){
   if(m){const p=+m[2];e.classList.add("sp");e.style.backgroundImage="url(s"+m[1]+".jpg)";e.style.backgroundPosition=((p%10)/9*100)+"% "+(Math.floor(p/10)/9*100)+"%";e.setAttribute("role","img");e.setAttribute("aria-label",t)}
   else if(c)e.appendChild(img(c,t));else e.appendChild(el("span",{class:"at"},t));
 }
-function thumb(file){return new Promise((ok,ko)=>{const r=new FileReader();r.onerror=ko;r.onload=()=>{const im=new Image();im.onerror=ko;im.onload=()=>{const w=Math.min(320,im.width),h=Math.round(im.height*w/im.width),c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(im,0,0,w,h);ok(c.toDataURL("image/jpeg",.7))};im.src=r.result};r.readAsDataURL(file)})}
+function thumb(file){return new Promise((ok,ko)=>{const u=URL.createObjectURL(file),im=new Image();im.onerror=()=>{URL.revokeObjectURL(u);ko(new Error("image"))};im.onload=()=>{try{const w=Math.min(360,im.naturalWidth||im.width),h=Math.round((im.naturalHeight||im.height)*w/(im.naturalWidth||im.width)),c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(im,0,0,w,h);const d=c.toDataURL("image/jpeg",.72);URL.revokeObjectURL(u);d.length>100?ok(d):ko(new Error("vide"))}catch(e){URL.revokeObjectURL(u);ko(e)}};im.src=u})}
 
 /* ---------- Répliques cultes (bandeau noir de l'accueil) ---------- */
 const QUOTES=[["Je suis ton père.","Star Wars, épisode V"],["Que la Force soit avec toi.","Star Wars"],["I'll be back.","Terminator"],["Hasta la vista, baby.","Terminator 2"],["Houston, nous avons un problème.","Apollo 13"],["Rosebud.","Citizen Kane"],["On aura toujours Paris.","Casablanca"],["Louis, je crois que c'est le début d'une grande amitié.","Casablanca"],["Je vais lui faire une offre qu'il ne pourra pas refuser.","Le Parrain"],["La vie, c'est comme une boîte de chocolats : on ne sait jamais sur quoi on va tomber.","Forrest Gump"],["Mon précieux.","Le Seigneur des anneaux"],["Vous ne passerez pas !","Le Seigneur des anneaux"],["Vers l'infini et au-delà !","Toy Story"],["Je suis le roi du monde !","Titanic"],["E.T. téléphone maison.","E.T. l'extra-terrestre"],["Mon nom est Bond. James Bond.","James Bond"],["Atmosphère ? Atmosphère ? Est-ce que j'ai une gueule d'atmosphère ?","Hôtel du Nord"],["Les cons, ça ose tout. C'est même à ça qu'on les reconnaît.","Les Tontons flingueurs"],["Ils sont fous, ces Romains !","Astérix"],["Tu parles à moi ?","Taxi Driver"],["Un grand pouvoir implique de grandes responsabilités.","Spider-Man"],["Show me the money !","Jerry Maguire"],["Là où on va, on n'a pas besoin de route.","Retour vers le futur"],["J'ai vu des choses que vous, humains, ne pourriez pas croire.","Blade Runner"],["Dans l'espace, personne ne vous entend crier.","Alien"]];
@@ -821,10 +843,12 @@ function coverChoices(i,withCur){
   if(withCur!==false&&i.cover&&/^http/.test(i.cover))add(i.cover);
   return out;
 }
-function pushCoverHist(i){if(i.cover)i.coverHist=[i.cover,...(i.coverHist||[]).filter(u=>u!==i.cover)].slice(0,4)}
-function undoCover(i){const h=i.coverHist||[];if(!h.length)return;i.cover=h[0];i.coverHist=h.slice(1);save(i);showFilm(i);render()}
-function setCover(i,u){pushCoverHist(i);i.cover=/image\.tmdb\.org\/t\/p\/w\d+\//.test(u)?u.replace(/\/t\/p\/w\d+\//,"/t/p/w500/"):u;save(i);showFilm(i);render()}
-function pickIn(i,text,cap){const fi=el("input",{type:"file",accept:"image/*",hidden:true});if(cap)fi.setAttribute("capture","environment");fi.onchange=async()=>{if(fi.files[0]){try{const c=await thumb(fi.files[0]);pushCoverHist(i);i.cover=c;save(i);showFilm(i);render()}catch(e){alert("Photo illisible.")}}};return el("label",{class:"btn ghost",style:"flex:1;text-align:center"},text,fi)}
+const live=i=>items.find(z=>z.id===i.id)||i;
+function pushCoverHist(i){if(!i.cover)return;let d=0;i.coverHist=[i.cover,...(i.coverHist||[]).filter(u=>u!==i.cover)].filter(u=>!/^data:/.test(u)||++d<=1).slice(0,4)}
+function coverFail(e){alert("La jaquette n'a pas pu être changée"+(e&&e.message?" ("+e.message+")":"")+". Réessaie.")}
+function undoCover(i0){try{const i=live(i0),h=i.coverHist||[];if(!h.length)return;i.cover=h[0];i.coverHist=h.slice(1);save(i);showFilm(i);render()}catch(e){coverFail(e)}}
+function setCover(i0,u){try{const i=live(i0);pushCoverHist(i);i.cover=/image\.tmdb\.org\/t\/p\/w\d+\//.test(u)?u.replace(/\/t\/p\/w\d+\//,"/t/p/w500/"):u;save(i);showFilm(i);render()}catch(e){coverFail(e)}}
+function pickIn(i0,text,cap){const fi=el("input",{type:"file",accept:"image/*",hidden:true});if(cap)fi.setAttribute("capture","environment");fi.onchange=async()=>{const f=fi.files&&fi.files[0];if(!f)return;try{const c=await thumb(f);const i=live(i0);pushCoverHist(i);i.cover=c;save(i);showFilm(i);render()}catch(e){alert("Photo illisible. Essaie une autre image.")}};return el("label",{class:"btn ghost",style:"flex:1;text-align:center"},text,fi)}
 function fillDyn(i){
   const inf=i.info,box=$("fInfo");if(!box)return;
   box.innerHTML="";
@@ -1010,18 +1034,19 @@ function render(){
   shown.sort(SORTS[$("sort").value]||SORTS.az);
   $("stats").textContent=shown.length+" disque"+(shown.length>1?"s":"")+(items.length!==shown.length?" sur "+items.length:"")+(enrichRun?" · fiches en cours de chargement…":"");
   const g=$("grid");g.innerHTML="";g.className=view==="grid"?"grid":"list";
-  if(!shown.length){g.innerHTML='<div class="empty">'+(items.length?"Aucun disque ne correspond.":"Ta collection est vide. Appuie sur « Ajouter un disque » pour commencer.")+"</div>";return}
+  if(!shown.length){g.innerHTML='<div class="empty">'+(items.length?"Aucun disque ne correspond.":"Ta collection est vide. Appuie sur « Ajouter un disque » pour commencer.")+"</div>";azUpdate();return}
   shown.forEach(i=>{
     const cv=mkCover(i);
     if(view==="grid"){
-      const b=el("button",{class:"disc "+i.format+(i.seen?" seen":""),"aria-label":i.title+", "+FMT[i.format]+(dupIds.has(i.id)?", doublon":""),onclick:()=>openFilm(i.id)},cv,dupIds.has(i.id)?el("span",{class:"dup"},"Doublon"):null);
+      const b=el("button",{"data-l":letterOf(i.title),class:"disc "+i.format+(i.seen?" seen":""),"aria-label":i.title+", "+FMT[i.format]+(dupIds.has(i.id)?", doublon":""),onclick:()=>openFilm(i.id)},cv,dupIds.has(i.id)?el("span",{class:"dup"},"Doublon"):null);
       g.appendChild(b);
     }else{
       const ow=isTv(i)?ownedOf(i):null;
       const m=[FMT[i.format],ow?"S"+fmtSeasons(ow):"",yr(i)||"",imdbN(i)?"IMDb "+i.info.imdb:"",i.genres||"",dupIds.has(i.id)?"Doublon":""].filter(Boolean).join(" · ");
-      g.appendChild(el("button",{class:"li "+i.format+(i.seen?" seen":""),onclick:()=>openFilm(i.id)},cv,el("div",{class:"tx"},el("div",{class:"t"},i.title),el("div",{class:"m"},m))));
+      g.appendChild(el("button",{"data-l":letterOf(i.title),class:"li "+i.format+(i.seen?" seen":""),onclick:()=>openFilm(i.id)},cv,el("div",{class:"tx"},el("div",{class:"t"},i.title),el("div",{class:"m"},m))));
     }
   });
+  azUpdate();
 }
 ["seen","age","genre","decade","list","sort"].forEach(id=>$(id).addEventListener("change",render));
 $("dupOnly").addEventListener("change",render);$("q").addEventListener("input",render);
@@ -1031,11 +1056,34 @@ $("fbtn").onclick=()=>{$("fpanel").hidden=!$("fpanel").hidden};
 $("fclear").onclick=()=>{["seen","age","genre","decade","list"].forEach(id=>$(id).value="");$("sort").value="az";$("dupOnly").checked=false;scope=null;render()};
 $("view").onclick=()=>{view=view==="grid"?"list":"grid";try{localStorage.setItem("movy-view",view)}catch(e){}render()};
 
+/* ---------- Index alphabétique (accueil) ---------- */
+const AZL=["#",..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"],azBox=$("az"),azBub=$("azBub");let azT=null,azOn=false;
+AZL.forEach(l=>azBox.appendChild(el("span",{"data-l":l},l)));
+function letterOf(t){const c=nrm(t).replace(/[^a-z0-9]/g,"").charAt(0);return /[a-z]/.test(c)?c.toUpperCase():"#"}
+function azUpdate(){
+  const g=$("grid"),els=[...g.querySelectorAll("[data-l]")],ok=!$("home").hidden&&["az","za"].includes($("sort").value)&&els.length>=18;
+  const have=new Set(els.map(e=>e.dataset.l));[...azBox.children].forEach(s=>s.classList.toggle("off",!have.has(s.dataset.l)));
+  azBox.dataset.ok=ok?"1":"";if(!ok)azBox.classList.remove("show");
+}
+window.addEventListener("scroll",()=>{if(azBox.dataset.ok!=="1")return;azBox.classList.add("show");clearTimeout(azT);azT=setTimeout(()=>{if(!azOn)azBox.classList.remove("show")},1800)},{passive:true});
+function azJump(y){
+  const r=azBox.getBoundingClientRect(),idx=Math.floor(Math.min(.999,Math.max(0,(y-r.top)/r.height))*AZL.length),L=AZL[idx],els=[...$("grid").querySelectorAll("[data-l]")];
+  let t=els.find(e=>e.dataset.l===L);
+  for(let k=idx+1;k<AZL.length&&!t;k++)t=els.find(e=>e.dataset.l===AZL[k]);
+  for(let k=idx-1;k>=0&&!t;k--)t=els.find(e=>e.dataset.l===AZL[k]);
+  azBub.textContent=L;azBub.hidden=false;
+  if(t)window.scrollTo(0,Math.max(0,t.getBoundingClientRect().top+window.scrollY-(parseInt(getComputedStyle(document.documentElement).getPropertyValue("--topH"))||0)-12));
+}
+azBox.addEventListener("pointerdown",e=>{azOn=true;try{azBox.setPointerCapture(e.pointerId)}catch(x){}azJump(e.clientY);e.preventDefault()});
+azBox.addEventListener("pointermove",e=>{if(azOn)azJump(e.clientY)});
+const azEnd=()=>{azOn=false;azBub.hidden=true;clearTimeout(azT);azT=setTimeout(()=>azBox.classList.remove("show"),1500)};
+azBox.addEventListener("pointerup",azEnd);azBox.addEventListener("pointercancel",azEnd);
+
 /* ---------- Explorer (2e onglet) ---------- */
 function shelf(title,arr,test){
   if(!arr.length)return null;
   const row=el("div",{class:"rec"});
-  arr.slice(0,18).forEach(x=>row.appendChild(el("button",{class:"ri",onclick:()=>openFilm(x.id)},mkCover(x),el("div",{class:"rt"},x.title),el("div",{class:"m"},FMT[x.format]))));
+  arr.slice(0,18).forEach(x=>row.appendChild(el("button",{class:"ri","aria-label":x.title+", "+FMT[x.format],onclick:()=>openFilm(x.id)},mkCover(x))));
   return el("section",{class:"shelf"},el("div",{class:"shh"},el("h2",null,title),el("span",{class:"m"},arr.length),el("button",{class:"chip link",onclick:()=>{scope={label:title,test};go("")}},"Tout voir")),row);
 }
 function tonight(){
@@ -1084,7 +1132,7 @@ function route(){
   const m=/^#film=(.+)$/.exec(location.hash);
   const i=m&&items.find(x=>x.id===decodeURIComponent(m[1]));
   const v=i?"film":(location.hash==="#more"?"more":location.hash==="#settings"?"settings":"home");
-  $("home").hidden=v!=="home";fitTop();$("fab").hidden=v!=="home";$("more").hidden=v!=="more";$("settings").hidden=v!=="settings";$("film").hidden=v!=="film";
+  $("home").hidden=v!=="home";if(v!=="home"){azBox.dataset.ok="";azBox.classList.remove("show")}fitTop();$("fab").hidden=v!=="home";$("more").hidden=v!=="more";$("settings").hidden=v!=="settings";$("film").hidden=v!=="film";
   if(v==="film")showFilm(i);
   else{
     curFilm=null;setTab(v);
@@ -1120,8 +1168,47 @@ function fillRecent(){
   l.forEach(i=>{const d=addedTs(i),dt=d>1e11?new Date(d).toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"}):"";
     box.appendChild(el("button",{class:"li "+i.format,style:"width:100%;margin-bottom:8px",onclick:()=>openFilm(i.id)},mkCover(i),el("div",{class:"tx"},el("div",{class:"t"},i.title),el("div",{class:"m"},[FMT[i.format],dt].filter(Boolean).join(" · ")))))});
 }
-const APP_VERSION="30/10/2026 · v6";
-function fillSettings(){$("enrichSt").textContent=enrichText();fillRecent();$("verTxt").textContent="Version affichée : "+APP_VERSION+". Après avoir remplacé index.html sur GitHub, attends environ 10 minutes, puis touche ce bouton. Ne supprime pas le raccourci de l'écran d'accueil : tes disques sont enregistrés dedans."}
+
+/* ---------- Statistiques (réglages) ---------- */
+function fillStats(){
+  const car=$("stCar"),dots=$("stDots");if(!car)return;car.innerHTML="";dots.innerHTML="";
+  const n=items.length;
+  if(!n){car.appendChild(el("div",{class:"stc"},el("h4",null,"Statistiques"),el("p",{class:"note"},"Ajoute quelques disques : tes statistiques apparaîtront ici.")));return}
+  const rows=a=>{const mx=Math.max(1,...a.map(r=>r[1]));return a.map(([l,v,t])=>el("div",{class:"sr"},el("span",{class:"lb"},l),el("span",{class:"br2"},el("i",{style:"width:"+Math.round(v/mx*100)+"%"})),el("b",null,t||v)))};
+  const card=(h,big,sub,list)=>el("div",{class:"stc"},el("h4",null,h),big!=null?el("div",{class:"big"},big,sub?el("small",null," "+sub):null):null,list||null);
+  const top=(m,k)=>Object.entries(m).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],"fr")).slice(0,k);
+  const cnt=(arr)=>{const m={};arr.forEach(x=>{if(x)m[x]=(m[x]||0)+1});return m};
+  const tv=items.filter(isTv).length,seen=items.filter(i=>i.seen).length;
+  const out=[];
+  out.push(card("Ma collection",n,"disque"+(n>1?"s":""),rows([["Films",n-tv],["Séries",tv],["Déjà vus",seen],["À voir",n-seen]])));
+  out.push(card("Par format",null,null,rows(Object.keys(FMT).map(k=>[FMT[k],items.filter(i=>i.format===k).length]))));
+  const pct=Math.round(seen/n*100),rated=items.filter(i=>i.rating>0),avg=rated.length?(rated.reduce((a,i)=>a+i.rating,0)/rated.length).toFixed(1).replace(".",","):"";
+  out.push(card("Vus",pct+" %","vus",rows([["Vus",seen],["À voir",n-seen]]).concat(avg?[el("p",{class:"note",style:"margin:10px 0 0"},"Ma note moyenne : "+avg+" / 5 sur "+rated.length+" disque"+(rated.length>1?"s":""))]:[])));
+  const mins=items.filter(i=>!isTv(i)&&i.info&&+i.info.runtime>0).reduce((a,i)=>a+ +i.info.runtime,0),hrs=Math.round(mins/60);
+  if(hrs)out.push(card("Temps de visionnage",hrs,"heures de films",el("p",{class:"note"},"Soit environ "+(hrs/24).toFixed(1).replace(".",",")+" jours sans dormir, sur les fiches déjà chargées (séries non comptées).")));
+  const gen=top(cnt(items.flatMap(i=>(i.genres||"").split(",").map(x=>x.trim()))),6);
+  if(gen.length)out.push(card("Genres préférés",null,null,rows(gen)));
+  const dec=cnt(items.map(i=>{const y=yr(i);return y?"Années "+Math.floor(y/10)*10:""}));
+  const decL=Object.entries(dec).sort((a,b)=>b[0].localeCompare(a[0]));
+  if(decL.length)out.push(card("Par décennie",null,null,rows(decL.slice(0,7))));
+  const ages=Object.keys(AGES).map(k=>[AGES[k],items.filter(i=>i.age===k).length]).filter(r=>r[1]);
+  if(ages.length)out.push(card("Classification",null,null,rows(ages)));
+  const dr=top(cnt(items.flatMap(i=>((i.info&&i.info.director)||"").split(", "))),5),ac=top(cnt(items.flatMap(i=>(i.info&&i.info.cast)||[])),5);
+  if(dr.length)out.push(card("Réalisateurs les plus présents",null,null,rows(dr)));
+  if(ac.length)out.push(card("Acteurs les plus présents",null,null,rows(ac)));
+  const best=[...items].filter(i=>imdbN(i)).sort((a,b)=>imdbN(b)-imdbN(a)).slice(0,5);
+  if(best.length)out.push(card("Mieux notés IMDb",null,null,rows(best.map(i=>[i.title,imdbN(i),imdbN(i).toFixed(1).replace(".",",")]))));
+  const yrs=items.filter(i=>yr(i));
+  if(yrs.length){const o=[...yrs].sort((a,b)=>yr(a)-yr(b)),r=o[o.length-1];out.push(card("Du plus ancien au plus récent",null,null,el("div",null,el("p",{class:"note",style:"margin:6px 0"},"Plus ancien"),el("b",null,o[0].title+" ("+yr(o[0])+")"),el("p",{class:"note",style:"margin:12px 0 6px"},"Plus récent"),el("b",null,r.title+" ("+yr(r)+")"))))}
+  const now=new Date(),mo=[];for(let k=5;k>=0;k--){const d=new Date(now.getFullYear(),now.getMonth()-k,1);mo.push([d.toLocaleDateString("fr-FR",{month:"short",year:"2-digit"}),items.filter(i=>{const t=addedTs(i);if(t<1e11)return false;const x=new Date(t);return x.getFullYear()===d.getFullYear()&&x.getMonth()===d.getMonth()}).length])}
+  if(mo.some(r=>r[1]))out.push(card("Ajouts des 6 derniers mois",null,null,rows(mo)));
+  const du=dupIds.size;
+  out.push(card("Doublons",du,du>1?"disques concernés":"disque concerné",du?null:el("p",{class:"note"},"Aucun doublon. Parfait.")));
+  out.forEach((c,k)=>{car.appendChild(c);dots.appendChild(el("i",{class:k?"":"on"}))});
+  car.onscroll=()=>{const w=(car.firstChild.offsetWidth||1)+10,k=Math.round(car.scrollLeft/w);[...dots.children].forEach((d,j)=>d.classList.toggle("on",j===k))};
+}
+const APP_VERSION="31/10/2026 · v7";
+function fillSettings(){computeDups();fillStats();$("enrichSt").textContent=enrichText();fillRecent();$("verTxt").textContent="Version affichée : "+APP_VERSION+". Après avoir remplacé index.html sur GitHub, attends environ 10 minutes, puis touche ce bouton. Ne supprime pas le raccourci de l'écran d'accueil : tes disques sont enregistrés dedans."}
 $("listD").addEventListener("close",()=>{if(curView==="more")renderMore();else if(curView==="home")render()});
 $("upd").onclick=async()=>{try{if(window.caches){for(const k of await caches.keys())await caches.delete(k)}const r=await fetch(location.pathname,{cache:"reload"});await r.text()}catch(e){}location.reload()};
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
