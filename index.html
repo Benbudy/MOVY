@@ -152,7 +152,7 @@ details.rc summary{cursor:pointer;font-weight:600}
 
 #az{position:fixed;right:2px;top:calc(var(--topH,0px) + 70px);bottom:calc(150px + env(safe-area-inset-bottom));max-height:470px;z-index:45;display:flex;flex-direction:column;justify-content:space-between;align-items:center;width:24px;padding:4px 0;border-radius:12px;background:rgba(120,120,128,.2);opacity:0;pointer-events:none;transition:opacity .2s;touch-action:none;user-select:none;-webkit-user-select:none}
 #az.show{opacity:1;pointer-events:auto}
-#az span{font:700 .62rem/1 system-ui;color:var(--acc)}
+#az span{font:700 .62rem/1 system-ui;color:var(--ink)}
 #az span.off{opacity:.3}
 #azBub{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:84px;height:84px;border-radius:18px;background:rgba(0,0,0,.72);color:#fff;font:700 2.6rem/84px system-ui;text-align:center;z-index:70;pointer-events:none}
 .stcar{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 -12px;padding:0 12px 4px}
@@ -323,6 +323,9 @@ try{
   else{const o=JSON.parse(localStorage.getItem(OLD)||"[]");if(Array.isArray(o))items=o.map(i=>({...i,u:i.u||1}));lists=defaults()}
 }catch(e){lists=defaults()}
 try{cfg=JSON.parse(localStorage.getItem(SK)||"{}")}catch(e){cfg={}}
+/* anciennes photos d'iPhone gardées dans l'historique des jaquettes remplacées : supprimées */
+function stripHist(i){if(!i||!Array.isArray(i.coverHist))return false;const h=i.coverHist.filter(u=>!/^data:/.test(u));if(h.length===i.coverHist.length)return false;i.coverHist=h;return true}
+(function(){let n=0;items.forEach(i=>{if(stripHist(i)){i.u=Date.now();n++}});if(n){try{localStorage.setItem(KEY,JSON.stringify({items,del,lists}))}catch(e){}}})();
 function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify({items,del,lists}))}catch(e){alert("Stockage plein. Exporte ta bibliothèque en JSON pour la sauvegarde.")}}
 function save(i){if(i)i.u=Date.now();saveLocal();queueSync()}
 const payload=()=>JSON.stringify({items,del,lists});
@@ -844,7 +847,7 @@ function coverChoices(i,withCur){
   return out;
 }
 const live=i=>items.find(z=>z.id===i.id)||i;
-function pushCoverHist(i){if(!i.cover)return;let d=0;i.coverHist=[i.cover,...(i.coverHist||[]).filter(u=>u!==i.cover)].filter(u=>!/^data:/.test(u)||++d<=1).slice(0,4)}
+function pushCoverHist(i){if(!i.cover)return;i.coverHist=[i.cover,...(i.coverHist||[]).filter(u=>u!==i.cover)].filter(u=>!/^data:/.test(u)).slice(0,4)}
 function coverFail(e){alert("La jaquette n'a pas pu être changée"+(e&&e.message?" ("+e.message+")":"")+". Réessaie.")}
 function undoCover(i0){try{const i=live(i0),h=i.coverHist||[];if(!h.length)return;i.cover=h[0];i.coverHist=h.slice(1);save(i);showFilm(i);render()}catch(e){coverFail(e)}}
 function setCover(i0,u){try{const i=live(i0);pushCoverHist(i);i.cover=/image\.tmdb\.org\/t\/p\/w\d+\//.test(u)?u.replace(/\/t\/p\/w\d+\//,"/t/p/w500/"):u;save(i);showFilm(i);render()}catch(e){coverFail(e)}}
@@ -1207,7 +1210,7 @@ function fillStats(){
   out.forEach((c,k)=>{car.appendChild(c);dots.appendChild(el("i",{class:k?"":"on"}))});
   car.onscroll=()=>{const w=(car.firstChild.offsetWidth||1)+10,k=Math.round(car.scrollLeft/w);[...dots.children].forEach((d,j)=>d.classList.toggle("on",j===k))};
 }
-const APP_VERSION="31/10/2026 · v7";
+const APP_VERSION="31/10/2026 · v7.1";
 function fillSettings(){computeDups();fillStats();$("enrichSt").textContent=enrichText();fillRecent();$("verTxt").textContent="Version affichée : "+APP_VERSION+". Après avoir remplacé index.html sur GitHub, attends environ 10 minutes, puis touche ce bouton. Ne supprime pas le raccourci de l'écran d'accueil : tes disques sont enregistrés dedans."}
 $("listD").addEventListener("close",()=>{if(curView==="more")renderMore();else if(curView==="home")render()});
 $("upd").onclick=async()=>{try{if(window.caches){for(const k of await caches.keys())await caches.delete(k)}const r=await fetch(location.pathname,{cache:"reload"});await r.text()}catch(e){}location.reload()};
@@ -1250,7 +1253,7 @@ function merge(rem){
   const ri=Array.isArray(rem.items)?rem.items:[],rd=rem.del&&typeof rem.del==="object"?rem.del:{};
   Object.entries(rd).forEach(([id,t])=>{if(!(del[id]>=t))del[id]=t});
   const map=new Map(items.map(i=>[i.id,i]));
-  ri.forEach(x=>{if(!x||!x.id||!x.title)return;const l=map.get(x.id);if(!l||(x.u||0)>(l.u||0))map.set(x.id,x)});
+  ri.forEach(x=>{if(!x||!x.id||!x.title)return;stripHist(x);const l=map.get(x.id);if(!l||(x.u||0)>(l.u||0))map.set(x.id,x)});
   items=[...map.values()].filter(i=>!(del[i.id]>(i.u||0)));
   mergeLists(rem.lists);
 }
