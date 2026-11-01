@@ -208,6 +208,7 @@ details.rc summary{cursor:pointer;font-weight:600}
 </div>
 <div class="stats" id="stats"></div>
 <div class="grid" id="grid"></div>
+<div id="gridEnd" style="height:2px"></div>
 </main>
 
 <main id="more" hidden>
@@ -226,13 +227,6 @@ details.rc summary{cursor:pointer;font-weight:600}
     <h3>Fiches des films</h3>
     <p class="note" id="enrichSt"></p>
     <button class="btn ghost" id="reload">Recharger toutes les fiches</button>
-  </div>
-  <div class="sec">
-    <h3>Synchronisation entre appareils</h3>
-    <p class="note">Ta liste est stockée dans un Gist privé de ton compte GitHub. <a href="https://github.com/settings/tokens/new?scopes=gist&description=dvdtheque" target="_blank" rel="noopener">Crée un jeton avec la seule autorisation « gist »</a>, puis colle le même jeton sur chaque appareil.</p>
-    <div class="bar"><input id="tok" class="secret" type="text" name="gh-token" placeholder="Jeton GitHub" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore><button class="btn" id="syncOn">Activer</button></div>
-    <div class="bar"><button class="btn ghost" id="syncNow">Synchroniser maintenant</button><button class="btn ghost" id="syncOff">Désactiver</button></div>
-    <div class="st note" id="syncSt"></div>
   </div>
   <div class="sec">
     <h3>Ajouter une liste de films</h3>
@@ -257,6 +251,13 @@ details.rc summary{cursor:pointer;font-weight:600}
   <div class="sec">
     <h3>Note IMDb</h3>
     <div class="bar"><input id="omdb" class="secret" type="text" name="omdb-api" placeholder="Clé OMDb" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore><button class="btn" id="omdbSave">Enregistrer</button></div>
+  </div>
+  <div class="sec">
+    <h3>Synchronisation entre appareils</h3>
+    <p class="note">Ta liste est stockée dans un Gist privé de ton compte GitHub. <a href="https://github.com/settings/tokens/new?scopes=gist&description=dvdtheque" target="_blank" rel="noopener">Crée un jeton avec la seule autorisation « gist »</a>, puis colle le même jeton sur chaque appareil.</p>
+    <div class="bar"><input id="tok" class="secret" type="text" name="gh-token" placeholder="Jeton GitHub" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore><button class="btn" id="syncOn">Activer</button></div>
+    <div class="bar"><button class="btn ghost" id="syncNow">Synchroniser maintenant</button><button class="btn ghost" id="syncOff">Désactiver</button></div>
+    <div class="st note" id="syncSt"></div>
   </div>
 </div>
 </main>
@@ -344,14 +345,38 @@ try{
 try{cfg=JSON.parse(localStorage.getItem(SK)||"{}")}catch(e){cfg={}}
 /* ---------- Stockage : IndexedDB (très grand) au lieu de localStorage (5 Mo) ---------- */
 let dbp=null,idbOK=false,started=false,wBusy=false,wDirty=false,warned=false;
-function idb(){return dbp||(dbp=new Promise((ok,ko)=>{try{const r=indexedDB.open("movy",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>ok(r.result);r.onerror=()=>ko(r.error);r.onblocked=()=>ko(new Error("blocked"))}catch(e){ko(e)}}))}
-const idbGet=k=>idb().then(db=>new Promise((ok,ko)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>ok(q.result);q.onerror=()=>ko(q.error)}));
-const idbSet=(k,v)=>idb().then(db=>new Promise((ok,ko)=>{const t=db.transaction("kv","readwrite");t.objectStore("kv").put(v,k);t.oncomplete=()=>ok();t.onerror=()=>ko(t.error);t.onabort=()=>ko(t.error)}));
+function idb(){return dbp||(dbp=new Promise((ok,ko)=>{try{const r=indexedDB.open("movy",2);r.onupgradeneeded=()=>{const d=r.result;["kv","img"].forEach(n=>{if(!d.objectStoreNames.contains(n))d.createObjectStore(n)})};r.onsuccess=()=>ok(r.result);r.onerror=()=>ko(r.error);r.onblocked=()=>ko(new Error("blocked"))}catch(e){ko(e)}}))}
+const idbReq=(st,mode,fn)=>idb().then(db=>new Promise((ok,ko)=>{const t=db.transaction(st,mode),q=fn(t.objectStore(st));t.oncomplete=()=>ok(q&&q.result);t.onerror=()=>ko(t.error);t.onabort=()=>ko(t.error)}));
+const idbGetIn=(st,k)=>idbReq(st,"readonly",o=>o.get(k)),idbSetIn=(st,k,v)=>idbReq(st,"readwrite",o=>o.put(v,k)),idbDelIn=(st,k)=>idbReq(st,"readwrite",o=>o.delete(k)),idbKeys=st=>idbReq(st,"readonly",o=>o.getAllKeys());
+const idbGet=k=>idbGetIn("kv",k),idbSet=(k,v)=>idbSetIn("kv",k,v);
 function saveFallback(){try{localStorage.setItem(KEY,JSON.stringify({items,del,lists}))}catch(e){if(!warned){warned=true;alert("Impossible d'enregistrer sur cet appareil (stockage plein). Exporte ta bibliothèque dans Réglages > Sauvegarde.")}}}
-function saveLocal(){
+let wTimer=null;
+function flushSave(){
+  clearTimeout(wTimer);wTimer=null;
   if(!idbOK){saveFallback();return}
   wDirty=true;if(wBusy)return;wBusy=true;
   (async()=>{try{while(wDirty){wDirty=false;await idbSet("state",JSON.stringify({items,del,lists}))}}catch(e){saveFallback()}wBusy=false})();
+}
+function saveLocal(){if(!idbOK){saveFallback();return}clearTimeout(wTimer);wTimer=setTimeout(flushSave,700)}
+document.addEventListener("visibilitychange",()=>{if(document.hidden&&wTimer)flushSave()});
+window.addEventListener("pagehide",()=>{if(wTimer)flushSave()});
+/* images (photos, jaquettes copiées) : une par entrée dans IndexedDB, hors de la liste principale */
+function dataToBlob(d){const m=/^data:([^;,]+)/.exec(d),bin=atob(d.slice(d.indexOf(",")+1)),u=new Uint8Array(bin.length);for(let k=0;k<bin.length;k++)u[k]=bin.charCodeAt(k);return new Blob([u],{type:m?m[1]:"image/jpeg"})}
+const blobToData=b=>new Promise((ok,ko)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=()=>ko(r.error);r.readAsDataURL(b)});
+async function storeImg(d){if(!idbOK||!/^data:/.test(d))return d;try{const key=Date.now().toString(36)+Math.random().toString(36).slice(2,7);await idbSetIn("img",key,dataToBlob(d));return "idb:"+key}catch(e){return d}}
+function dropImg(c){if(!/^idb:/.test(c||"")||items.some(x=>x.cover===c))return;idbDelIn("img",c.slice(4)).catch(()=>{})}
+const imgCache=new Map();
+function imgSrc(key){let p=imgCache.get(key);if(!p){p=idbGetIn("img",key).then(b=>b?URL.createObjectURL(b):"").catch(()=>"");imgCache.set(key,p)}return p}
+async function coverURL(c){if(!c||/^sp:/.test(c))return "";return /^idb:/.test(c)?imgSrc(c.slice(4)):c}
+let migBusy=false;
+async function migrateInline(){
+  if(migBusy||!idbOK)return;const todo=items.filter(i=>/^data:/.test(i.cover||""));if(!todo.length)return;migBusy=true;
+  try{let n=0;for(const i of todo){const k=await storeImg(i.cover);if(/^idb:/.test(k)){i.cover=k;n++}if(n%15===0)await sleep(0)}if(n){saveLocal();render()}}catch(e){}
+  migBusy=false;
+}
+async function gcImgs(){
+  if(!idbOK||migBusy||spBusy)return;
+  try{const keys=await idbKeys("img"),used=new Set(items.map(i=>/^idb:/.test(i.cover||"")?i.cover.slice(4):"").filter(Boolean));for(const k of keys)if(!used.has(k))await idbDelIn("img",k)}catch(e){}
 }
 async function bootDB(){
   try{
@@ -365,9 +390,9 @@ async function bootDB(){
   }catch(e){idbOK=false}
 }
 /* anciennes photos d'iPhone gardées dans l'historique des jaquettes remplacées : supprimées */
-function stripHist(i){if(!i||!Array.isArray(i.coverHist))return false;const h=i.coverHist.filter(u=>!/^(data:|sp:)/.test(u));if(h.length===i.coverHist.length)return false;i.coverHist=h;return true}
+function stripHist(i){if(!i||!Array.isArray(i.coverHist))return false;const h=i.coverHist.filter(u=>!/^(data:|sp:|idb:)/.test(u));if(h.length===i.coverHist.length)return false;i.coverHist=h;return true}
 function save(i){if(i)i.u=Date.now();saveLocal();queueSync()}
-const payload=()=>JSON.stringify({items,del,lists});
+const payload=()=>JSON.stringify({items:items.map(i=>/^idb:/.test(i.cover||"")?Object.assign({},i,{cover:(i.info&&i.info.poster)||""}):i),del,lists});
 function ls(k){try{return localStorage.getItem(k)||""}catch(e){return ""}}
 const omdbKey=()=>ls(OK),tmKey=()=>ls(TK);
 const SERIES_RE=/int[ée]grale|saisons?\s*\d|seasons?\s*\d|\bseries\b|coffret|complete\s+(series|collection|seasons?)|\bs\d{1,2}\b|volumes?\s*\d|box\s?set|\bvol\.?\s*\d/i;
@@ -378,7 +403,8 @@ function cleanTitle(t){
     .replace(/\s+/g," ").replace(/[\s:\-–—,]+$/,"").trim();
 }
 const nrm=s=>(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
-const nkey=t=>nrm(cleanTitle(t)).replace(/[^a-z0-9]+/g," ").trim();
+const nkMemo=new Map();
+const nkey=t=>{t=t||"";let v=nkMemo.get(t);if(v===undefined){v=nrm(cleanTitle(t)).replace(/[^a-z0-9]+/g," ").trim();if(nkMemo.size>6000)nkMemo.clear();nkMemo.set(t,v)}return v};
 const nid=()=>Date.now()+"-"+Math.random().toString(36).slice(2,6);
 const addedTs=i=>parseInt(String(i.id).split("-")[0])||i.u||0;
 const yr=i=>parseInt(i.year||(i.info&&i.info.year))||0;
@@ -393,9 +419,16 @@ function img(src,alt){const i=document.createElement("img");i.src=src;i.alt=alt;
 function fillCover(e,c,t){
   const m=/^sp:(\d+):(\d+)$/.exec(c||"");
   if(m){const p=+m[2];e.classList.add("sp");e.style.backgroundImage="url(s"+m[1]+".jpg)";e.style.backgroundPosition=((p%10)/9*100)+"% "+(Math.floor(p/10)/9*100)+"%";e.setAttribute("role","img");e.setAttribute("aria-label",t)}
+  else if(/^idb:/.test(c||"")){const im=document.createElement("img");im.alt=t;im.loading="lazy";e.appendChild(im);imgSrc(c.slice(4)).then(u=>{if(u)im.src=u;else{im.remove();e.appendChild(el("span",{class:"at"},t))}})}
   else if(c)e.appendChild(img(c,t));else e.appendChild(el("span",{class:"at"},t));
 }
-function thumb(file){return new Promise((ok,ko)=>{const u=URL.createObjectURL(file),im=new Image();im.onerror=()=>{URL.revokeObjectURL(u);ko(new Error("image"))};im.onload=()=>{try{const w=Math.min(360,im.naturalWidth||im.width),h=Math.round((im.naturalHeight||im.height)*w/(im.naturalWidth||im.width)),c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(im,0,0,w,h);const d=c.toDataURL("image/jpeg",.72);URL.revokeObjectURL(u);d.length>100?ok(d):ko(new Error("vide"))}catch(e){URL.revokeObjectURL(u);ko(e)}};im.src=u})}
+async function thumb(file){
+  let src,W,H,rel=()=>{};
+  try{const bm=await createImageBitmap(file,{resizeWidth:360,resizeQuality:"high"});src=bm;W=bm.width;H=bm.height;rel=()=>{try{bm.close()}catch(e){}}}
+  catch(e){const u=URL.createObjectURL(file);try{const im=await new Promise((ok,ko)=>{const x=new Image();x.onload=()=>ok(x);x.onerror=()=>ko(new Error("image"));x.src=u});src=im;W=im.naturalWidth||im.width;H=im.naturalHeight||im.height}finally{URL.revokeObjectURL(u)}}
+  const w=Math.max(1,Math.min(360,W)),h=Math.max(1,Math.round(H*w/W)),c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(src,0,0,w,h);rel();
+  const d=c.toDataURL("image/jpeg",.72);c.width=c.height=0;if(d.length<100)throw new Error("vide");return d;
+}
 
 /* ---------- Répliques cultes (bandeau noir de l'accueil) ---------- */
 const QUOTES=[["Je suis ton père.","Star Wars, épisode V"],["Que la Force soit avec toi.","Star Wars"],["I'll be back.","Terminator"],["Hasta la vista, baby.","Terminator 2"],["Houston, nous avons un problème.","Apollo 13"],["Rosebud.","Citizen Kane"],["On aura toujours Paris.","Casablanca"],["Louis, je crois que c'est le début d'une grande amitié.","Casablanca"],["Je vais lui faire une offre qu'il ne pourra pas refuser.","Le Parrain"],["La vie, c'est comme une boîte de chocolats : on ne sait jamais sur quoi on va tomber.","Forrest Gump"],["Mon précieux.","Le Seigneur des anneaux"],["Vous ne passerez pas !","Le Seigneur des anneaux"],["Vers l'infini et au-delà !","Toy Story"],["Je suis le roi du monde !","Titanic"],["E.T. téléphone maison.","E.T. l'extra-terrestre"],["Mon nom est Bond. James Bond.","James Bond"],["Atmosphère ? Atmosphère ? Est-ce que j'ai une gueule d'atmosphère ?","Hôtel du Nord"],["Les cons, ça ose tout. C'est même à ça qu'on les reconnaît.","Les Tontons flingueurs"],["Ils sont fous, ces Romains !","Astérix"],["Tu parles à moi ?","Taxi Driver"],["Un grand pouvoir implique de grandes responsabilités.","Spider-Man"],["Show me the money !","Jerry Maguire"],["Là où on va, on n'a pas besoin de route.","Retour vers le futur"],["J'ai vu des choses que vous, humains, ne pourriez pas croire.","Blade Runner"],["Dans l'espace, personne ne vous entend crier.","Alien"]];
@@ -469,7 +502,7 @@ $("mAdd").onclick=async()=>{
   const same=items.filter(x=>sameFilm(tmp,x)||(pendingCode&&x.code===pendingCode));
   if(same.length&&!confirm("Tu as déjà « "+same[0].title+" » en "+same.map(x=>FMT[x.format]).join(", ")+". L'ajouter quand même ?"))return;
   let cover=pendingCover;const f=$("mp").files[0]||$("mp2").files[0];
-  if(f){try{cover=await thumb(f)}catch(e){alert("Photo illisible. Le disque sera ajouté sans jaquette.")}}
+  if(f){try{cover=await storeImg(await thumb(f))}catch(e){alert("Photo illisible. Le disque sera ajouté sans jaquette.")}}
   const it={id:nid(),title:t,year:$("my").value,cover,overview:"",format:$("fmt").value,seen:false,rating:0,lists:[]};
   if(pendingCode)it.code=pendingCode;
   items.unshift(it);save(it);
@@ -726,7 +759,7 @@ async function loadTmdb(i){
   const cand=(i.pick&&i.pick.k==="tmdb")?i.pick:await tmdbSearch(i);
   if(!cand)return null;
   const tv=cand.type==="tv";
-  const d=await tm("/"+(tv?"tv":"movie")+"/"+cand.id,{append_to_response:tv?"credits,images,content_ratings,external_ids":"credits,images,release_dates",include_image_language:"fr,en,null"});
+  const d=await tm("/"+(tv?"tv":"movie")+"/"+cand.id,{append_to_response:tv?"credits,images,content_ratings,external_ids,alternative_titles":"credits,images,release_dates,alternative_titles",include_image_language:"fr,en,null"});
   const crew=(d.credits&&d.credits.crew)||[],cast=(d.credits&&d.credits.cast)||[];
   const pr=l=>l==="fr"?0:l==="en"?1:l?3:2;
   const info={v:3,src:"tmdb",kind:tv?"tv":"movie",tmdbId:d.id,
@@ -742,6 +775,7 @@ async function loadTmdb(i){
     photos:((d.images&&d.images.backdrops)||[]).slice(0,10).map(x=>TMG+"w780"+x.file_path),
     posters:((d.images&&d.images.posters)||[]).slice().sort((a,b)=>pr(a.iso_639_1)-pr(b.iso_639_1)||(b.vote_average||0)-(a.vote_average||0)).slice(0,14).map(x=>TMG+"w500"+x.file_path),
     seasonList:tv?(d.seasons||[]).filter(x=>x.season_number>0).map(x=>({n:x.season_number,ep:x.episode_count||0,poster:x.poster_path?TMG+"w500"+x.poster_path:""})):[]};
+  {const at=tv?((d.alternative_titles&&d.alternative_titles.results)||[]):((d.alternative_titles&&d.alternative_titles.titles)||[]);info.orig=(tv?d.original_name:d.original_title)||"";info.alts=[...new Set([d.title||d.name,...at.map(x=>x.title)].filter(Boolean))].slice(0,20)}
   await addImdb(info,i);
   return info;
 }
@@ -805,6 +839,14 @@ async function fetchInfo(i){
 }
 let enrichRun=false;
 function enrichText(){const n=items.length,d=items.filter(i=>infoOK(i)||i.noinfo).length;return n?("Fiches chargées : "+d+" / "+n+(enrichRun?" (en cours…)":"")):""}
+const altFail=new Set(),needAlts=i=>i.info&&i.info.src==="tmdb"&&i.info.tmdbId&&!Array.isArray(i.info.alts)&&!altFail.has(i.id);
+async function fetchAlts(i){
+  const inf=i.info,tv=inf.kind==="tv";
+  try{const d=await tm("/"+(tv?"tv":"movie")+"/"+inf.tmdbId,{append_to_response:"alternative_titles"});
+    const at=tv?((d.alternative_titles&&d.alternative_titles.results)||[]):((d.alternative_titles&&d.alternative_titles.titles)||[]);
+    inf.orig=(tv?d.original_name:d.original_title)||"";inf.alts=[...new Set([d.title||d.name,...at.map(x=>x.title)].filter(Boolean))].slice(0,20);return true}
+  catch(e){altFail.add(i.id);return false}
+}
 async function enrichAll(){
   if(enrichRun)return;enrichRun=true;let n=0;
   try{
@@ -815,6 +857,7 @@ async function enrichAll(){
       if(n%8===0){render();$("enrichSt").textContent=enrichText()}
       await sleep(450);
     }
+    if(tmKey()&&navigator.onLine){let k=0;for(;;){const i=items.find(needAlts);if(!i)break;const ok=await fetchAlts(i);if(!ok&&!navigator.onLine)break;if(++k%25===0)saveLocal();await sleep(300)}if(k)saveLocal()}
   }finally{enrichRun=false;render();$("enrichSt").textContent=enrichText()}
 }
 
@@ -823,7 +866,7 @@ let curFilm=null,curView="home",nav=0,scope=null;const sy={};
 function go(h){const t=h?"#"+h:"";if(location.hash===t){route();return}nav++;location.hash=h}
 function openFilm(id){go("film="+encodeURIComponent(id))}
 function goBack(){if(nav>0&&history.length>1){nav--;history.back()}else{if(location.hash)location.hash="";else route()}}
-function bigSrc(i){return (i.info&&i.info.poster)||(/^sp:/.test(i.cover||"")?"":i.cover)||""}
+function bigSrc(i){return (i.info&&i.info.poster)||(/^(sp|idb):/.test(i.cover||"")?"":i.cover)||""}
 function showFilm(i){
   const box=$("film"),keep=curFilm===i.id?window.scrollY:0;
   curFilm=i.id;box.innerHTML="";
@@ -831,7 +874,7 @@ function showFilm(i){
   const dups=dupsOf(i);
   const cv=mkCover(i,"fcover");
   const big=bigSrc(i);
-  if(big)cv.onclick=()=>lightbox([big,...(i.cover&&i.cover!==big&&!/^sp:/.test(i.cover)?[i.cover]:[]),...((inf&&inf.photos)||[])],0);
+  if(big||/^idb:/.test(i.cover||""))cv.onclick=async()=>{const cu=await coverURL(i.cover),L=[...(big?[big]:[]),...(cu&&cu!==big?[cu]:[]),...((inf&&inf.photos)||[])];if(L.length)lightbox(L,0)};
   const fs=el("select",{"aria-label":"Format",onchange:()=>{i.format=fs.value;save(i);showFilm(i);render()}},Object.entries(FMT).map(([k,l])=>el("option",{value:k,selected:k===i.format},l)));
   const sb=el("button",{class:"btn"+(i.seen?" ghost":""),onclick:()=>{i.seen=!i.seen;save(i);showFilm(i);render()}},i.seen?"Marquer à voir":"Marquer comme vu");
   const st=el("div",{class:"stars"});
@@ -850,6 +893,16 @@ function showFilm(i){
   alive().forEach(l=>chips.appendChild(el("button",{class:"chip","aria-pressed":(i.lists||[]).includes(l.id),onclick:()=>{const a=new Set(i.lists||[]);a.has(l.id)?a.delete(l.id):a.add(l.id);i.lists=[...a];save(i);showFilm(i);render()}},((i.lists||[]).includes(l.id)?"✓ ":"")+l.name)));
   chips.appendChild(el("button",{class:"chip link",onclick:()=>{const n=(prompt("Nom de la nouvelle liste ?")||"").trim();if(!n)return;const l=newList(n);if(l){i.lists=[...(i.lists||[]),l.id];save(i);showFilm(i);render()}}},"＋ Nouvelle liste"));
   box.appendChild(el("div",{class:"sec"},el("h3",null,"Mes listes"),chips));
+  /* titre et autres titres */
+  {
+    const renameTo=t=>{t=(t||"").trim();if(!t||t===i.title)return;i.alt=[...new Set([i.title,...(i.alt||[])])].filter(x=>x&&x!==t);i.title=t;save(i);showFilm(i);render()};
+    const alts=[...new Set([...(i.alt||[]),...((inf&&inf.alts)||[]),...(inf&&inf.orig?[inf.orig]:[])])].filter(t=>t&&t!==i.title).slice(0,14);
+    const ti=el("input",{value:i.title,"aria-label":"Titre affiché",autocomplete:"off"}),ai=el("input",{value:(i.alt||[]).join(", "),placeholder:"Ex. : Les Évadés, Shawshank","aria-label":"Mes autres titres",autocomplete:"off"});
+    box.appendChild(el("div",{class:"sec"},el("h3",null,"Titre"),
+      el("div",{class:"bar",style:"margin:0"},ti,el("button",{class:"btn",type:"button",onclick:()=>renameTo(ti.value)},"Renommer")),
+      alts.length?el("div",{style:"margin-top:8px"},el("div",{class:"note"},"Autres titres connus (touche-en un pour l'utiliser)"),el("div",{class:"chips"},alts.map(t=>el("button",{class:"chip",type:"button",onclick:()=>renameTo(t)},t)))):null,
+      el("div",{style:"margin-top:10px"},el("div",{class:"note"},"Mes autres titres, séparés par des virgules. La recherche les trouve tous."),el("div",{class:"bar",style:"margin:0"},ai,el("button",{class:"btn ghost",type:"button",onclick:()=>{i.alt=ai.value.split(",").map(x=>x.trim()).filter(Boolean);save(i);showFilm(i);render()}},"Enregistrer")))));
+  }
   /* type + saisons */
   box.appendChild(el("div",{class:"sec"},el("h3",null,"Type"),el("div",{class:"chips"},[["movie","Film"],["tv","Série"]].map(([k,l])=>el("button",{class:"chip","aria-pressed":(tvNow?"tv":"movie")===k,onclick:()=>{if((tvNow?"tv":"movie")===k)return;i.kind=k;i.pick=null;resetInfo(i);save(i);showFilm(i);render()}},l)))));
   if(tvNow)box.appendChild(seasonsSection(i));
@@ -895,11 +948,11 @@ function coverChoices(i,withCur){
   return out;
 }
 const live=i=>items.find(z=>z.id===i.id)||i;
-function pushCoverHist(i){if(!i.cover)return;i.coverHist=[i.cover,...(i.coverHist||[]).filter(u=>u!==i.cover)].filter(u=>!/^(data:|sp:)/.test(u)).slice(0,4)}
+function pushCoverHist(i){if(!i.cover)return;i.coverHist=[i.cover,...(i.coverHist||[]).filter(u=>u!==i.cover)].filter(u=>!/^(data:|sp:|idb:)/.test(u)).slice(0,4)}
 function coverFail(e){alert("La jaquette n'a pas pu être changée"+(e&&e.message?" ("+e.message+")":"")+". Réessaie.")}
-function undoCover(i0){try{const i=live(i0),h=i.coverHist||[];if(!h.length)return;i.cover=h[0];i.coverHist=h.slice(1);save(i);showFilm(i);render()}catch(e){coverFail(e)}}
-function setCover(i0,u){try{const i=live(i0);pushCoverHist(i);i.cover=/image\.tmdb\.org\/t\/p\/w\d+\//.test(u)?u.replace(/\/t\/p\/w\d+\//,"/t/p/w500/"):u;save(i);showFilm(i);render()}catch(e){coverFail(e)}}
-function pickIn(i0,text,cap){const fi=el("input",{type:"file",accept:"image/*",hidden:true});if(cap)fi.setAttribute("capture","environment");fi.onchange=async()=>{const f=fi.files&&fi.files[0];if(!f)return;try{const c=await thumb(f);const i=live(i0);pushCoverHist(i);i.cover=c;save(i);showFilm(i);render()}catch(e){alert("Photo illisible. Essaie une autre image.")}};return el("label",{class:"pk"},el("span",{class:"ic"},cap?"📷":"🖼"),text,fi)}
+function undoCover(i0){try{const i=live(i0),h=i.coverHist||[];if(!h.length)return;const old=i.cover;i.cover=h[0];dropImg(old);i.coverHist=h.slice(1);save(i);showFilm(i);render()}catch(e){coverFail(e)}}
+function setCover(i0,u){try{const i=live(i0),old=i.cover;pushCoverHist(i);i.cover=/image\.tmdb\.org\/t\/p\/w\d+\//.test(u)?u.replace(/\/t\/p\/w\d+\//,"/t/p/w500/"):u;dropImg(old);save(i);showFilm(i);render()}catch(e){coverFail(e)}}
+function pickIn(i0,text,cap){const fi=el("input",{type:"file",accept:"image/*",hidden:true});if(cap)fi.setAttribute("capture","environment");fi.onchange=async()=>{const f=fi.files&&fi.files[0];if(!f)return;try{const c=await storeImg(await thumb(f));const i=live(i0),old=i.cover;pushCoverHist(i);i.cover=c;dropImg(old);save(i);showFilm(i);render()}catch(e){alert("Photo illisible. Essaie une autre image.")}};return el("label",{class:"pk"},el("span",{class:"ic"},cap?"📷":"🖼"),text,fi)}
 function fillDyn(i){
   const inf=i.info,box=$("fInfo");if(!box)return;
   box.innerHTML="";
@@ -1067,9 +1120,26 @@ $("newList").addEventListener("keydown",e=>{if(e.key==="Enter")$("newListGo").cl
 
 /* ---------- Affichage de la collection ---------- */
 let view="grid";try{view=localStorage.getItem("movy-view")||"grid"}catch(e){}
-const SORTS={az:(a,b)=>a.title.localeCompare(b.title,"fr"),za:(a,b)=>b.title.localeCompare(a.title,"fr"),yd:(a,b)=>yr(b)-yr(a),ya:(a,b)=>(yr(a)||9999)-(yr(b)||9999),rate:(a,b)=>(b.rating||0)-(a.rating||0),imdb:(a,b)=>imdbN(b)-imdbN(a),new:(a,b)=>addedTs(b)-addedTs(a)};
-function hay(i){const f=i.info||{};return nrm([i.title,i.year||f.year,f.director,(f.cast||[]).join(" "),i.genres,FMT[i.format],AGES[i.age]||"",(i.lists||[]).map(listName).join(" ")].join(" "))}
+const COL=new Intl.Collator("fr");
+const SORTS={az:(a,b)=>COL.compare(a.title,b.title),za:(a,b)=>COL.compare(b.title,a.title),yd:(a,b)=>yr(b)-yr(a),ya:(a,b)=>(yr(a)||9999)-(yr(b)||9999),rate:(a,b)=>(b.rating||0)-(a.rating||0),imdb:(a,b)=>imdbN(b)-imdbN(a),new:(a,b)=>addedTs(b)-addedTs(a)};
+const hayC=new WeakMap();
+function hay(i){
+  const f=i.info||{},sig=[i.title,i.year,i.genres,i.format,i.age,(i.alt||[]).join("|"),(i.lists||[]).join(","),f.alts&&f.alts.length,f.cast&&f.cast.length,f.director].join("¤"),c=hayC.get(i);
+  if(c&&c.s===sig&&c.f===i.info)return c.h;
+  const h=nrm([i.title,(i.alt||[]).join(" "),f.orig,(f.alts||[]).join(" "),i.year||f.year,f.director,(f.cast||[]).join(" "),i.genres,FMT[i.format],AGES[i.age]||"",(i.lists||[]).map(listName).join(" ")].join(" "));
+  hayC.set(i,{s:sig,f:i.info,h});return h;
+}
 function fillSelect(s,first,opts,cur){s.innerHTML="";s.appendChild(el("option",{value:""},first));opts.forEach(([v,l])=>s.appendChild(el("option",{value:v},l)));s.value=opts.some(o=>o[0]===cur)?cur:""}
+let gShown=[],gL=[],gPos=0;
+function gItem(i){
+  const cv=mkCover(i);
+  if(view==="grid")return el("button",{"data-l":letterOf(i.title),class:"disc "+i.format+(i.seen?" seen":""),"aria-label":i.title+", "+FMT[i.format]+(dupIds.has(i.id)?", doublon":""),onclick:()=>openFilm(i.id)},cv,dupIds.has(i.id)?el("span",{class:"dup"},"Doublon"):null);
+  const ow=isTv(i)?ownedOf(i):null;
+  const m=[FMT[i.format],ow?"S"+fmtSeasons(ow):"",yr(i)||"",imdbN(i)?"IMDb "+i.info.imdb:"",i.genres||"",dupIds.has(i.id)?"Doublon":""].filter(Boolean).join(" · ");
+  return el("button",{"data-l":letterOf(i.title),class:"li "+i.format+(i.seen?" seen":""),onclick:()=>openFilm(i.id)},cv,el("div",{class:"tx"},el("div",{class:"t"},i.title),el("div",{class:"m"},m)));
+}
+function gMore(n){const end=Math.min(gShown.length,gPos+n),fr=document.createDocumentFragment();for(;gPos<end;gPos++)fr.appendChild(gItem(gShown[gPos]));$("grid").appendChild(fr)}
+const gIO=("IntersectionObserver" in window)?new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)&&gPos<gShown.length){gMore(120);gIO.unobserve($("gridEnd"));gIO.observe($("gridEnd"))}},{rootMargin:"900px 0px"}):null;
 function render(){
   computeDups();
   $("tabs").innerHTML="";
@@ -1101,22 +1171,13 @@ function render(){
   shown.sort(SORTS[$("sort").value]||SORTS.az);
   $("stats").textContent=shown.length+" disque"+(shown.length>1?"s":"")+(items.length!==shown.length?" sur "+items.length:"")+(enrichRun?" · fiches en cours de chargement…":"");
   const g=$("grid");g.innerHTML="";g.className=view==="grid"?"grid":"list";
-  if(!shown.length){g.innerHTML='<div class="empty">'+(items.length?"Aucun disque ne correspond.":"Ta collection est vide. Appuie sur « Ajouter un disque » pour commencer.")+"</div>";azUpdate();return}
-  shown.forEach(i=>{
-    const cv=mkCover(i);
-    if(view==="grid"){
-      const b=el("button",{"data-l":letterOf(i.title),class:"disc "+i.format+(i.seen?" seen":""),"aria-label":i.title+", "+FMT[i.format]+(dupIds.has(i.id)?", doublon":""),onclick:()=>openFilm(i.id)},cv,dupIds.has(i.id)?el("span",{class:"dup"},"Doublon"):null);
-      g.appendChild(b);
-    }else{
-      const ow=isTv(i)?ownedOf(i):null;
-      const m=[FMT[i.format],ow?"S"+fmtSeasons(ow):"",yr(i)||"",imdbN(i)?"IMDb "+i.info.imdb:"",i.genres||"",dupIds.has(i.id)?"Doublon":""].filter(Boolean).join(" · ");
-      g.appendChild(el("button",{"data-l":letterOf(i.title),class:"li "+i.format+(i.seen?" seen":""),onclick:()=>openFilm(i.id)},cv,el("div",{class:"tx"},el("div",{class:"t"},i.title),el("div",{class:"m"},m))));
-    }
-  });
-  azUpdate();
+  gShown=shown;gL=shown.map(x=>letterOf(x.title));gPos=0;
+  if(!shown.length){g.innerHTML='<div class="empty">'+(items.length?"Aucun disque ne correspond.":"Ta collection est vide. Appuie sur le bouton + pour commencer.")+"</div>";azUpdate();return}
+  gMore(90);azUpdate();
+  if(gIO){gIO.unobserve($("gridEnd"));gIO.observe($("gridEnd"))}else gMore(1e9);
 }
 ["seen","age","genre","decade","list","sort"].forEach(id=>$(id).addEventListener("change",render));
-$("dupOnly").addEventListener("change",render);$("q").addEventListener("input",render);
+$("dupOnly").addEventListener("change",render);let qT=null;$("q").addEventListener("input",()=>{$("qx").hidden=!$("q").value;clearTimeout(qT);qT=setTimeout(render,150)});
 $("qx").onclick=()=>{$("q").value="";render();$("q").focus()};
 $("scopeX").onclick=()=>{scope=null;render()};
 $("fbtn").onclick=()=>{$("fpanel").hidden=!$("fpanel").hidden};
@@ -1128,16 +1189,19 @@ const AZL=["#",..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"],azBox=$("az");let azT=null,azOn=
 AZL.forEach(l=>azBox.appendChild(el("span",{"data-l":l},l)));
 function letterOf(t){const c=nrm(t).replace(/[^a-z0-9]/g,"").charAt(0);return /[a-z]/.test(c)?c.toUpperCase():"#"}
 function azUpdate(){
-  const g=$("grid"),els=[...g.querySelectorAll("[data-l]")],ok=!$("home").hidden&&["az","za"].includes($("sort").value)&&els.length>=18;
-  const have=new Set(els.map(e=>e.dataset.l));[...azBox.children].forEach(s=>s.classList.toggle("off",!have.has(s.dataset.l)));
+  const ok=!$("home").hidden&&["az","za"].includes($("sort").value)&&gShown.length>=18,have=new Set(gL);
+  [...azBox.children].forEach(x=>x.classList.toggle("off",!have.has(x.dataset.l)));
   azBox.dataset.ok=ok?"1":"";if(!ok)azBox.classList.remove("show");
 }
 window.addEventListener("scroll",()=>{if(azBox.dataset.ok!=="1")return;azBox.classList.add("show");clearTimeout(azT);azT=setTimeout(()=>{if(!azOn)azBox.classList.remove("show")},1800)},{passive:true});
 function azJump(y){
-  const r=azBox.getBoundingClientRect(),idx=Math.floor(Math.min(.999,Math.max(0,(y-r.top)/r.height))*AZL.length),L=AZL[idx],els=[...$("grid").querySelectorAll("[data-l]")];
-  let t=els.find(e=>e.dataset.l===L);
-  for(let k=idx+1;k<AZL.length&&!t;k++)t=els.find(e=>e.dataset.l===AZL[k]);
-  for(let k=idx-1;k>=0&&!t;k--)t=els.find(e=>e.dataset.l===AZL[k]);
+  const r=azBox.getBoundingClientRect(),idx=Math.floor(Math.min(.999,Math.max(0,(y-r.top)/r.height))*AZL.length);
+  let ti=gL.indexOf(AZL[idx]);
+  for(let k=idx+1;k<AZL.length&&ti<0;k++)ti=gL.indexOf(AZL[k]);
+  for(let k=idx-1;k>=0&&ti<0;k--)ti=gL.indexOf(AZL[k]);
+  if(ti<0)return;
+  if(gPos<=ti)gMore(ti-gPos+40);
+  const t=$("grid").children[ti];
   if(t)window.scrollTo(0,Math.max(0,t.getBoundingClientRect().top+window.scrollY-(parseInt(getComputedStyle(document.documentElement).getPropertyValue("--topH"))||0)-12));
 }
 azBox.addEventListener("pointerdown",e=>{azOn=true;try{azBox.setPointerCapture(e.pointerId)}catch(x){}azJump(e.clientY);e.preventDefault()});
@@ -1196,7 +1260,7 @@ function streamSection(){
     }catch(e){res.textContent="Recherche impossible (connexion ?)."}
   };
   inp.addEventListener("keydown",e=>{if(e.key==="Enter")go()});
-  return el("section",{class:"shelf"},el("div",{class:"shh"},el("h2",null,"Où le regarder ?")),el("div",{class:"bar",style:"margin:0"},el("div",{class:"sw",style:"flex:1;min-width:0"},inp,xb),el("button",{class:"btn",type:"button",onclick:go},"Chercher")),res,
+  return el("section",{class:"shelf"},el("div",{class:"shh"},el("h2",null,"Tu cherches un film ?")),el("div",{class:"bar",style:"margin:0"},el("div",{class:"sw",style:"flex:1;min-width:0"},inp,xb),el("button",{class:"btn",type:"button",onclick:go},"Chercher")),res,
     el("p",{class:"note",style:"margin:8px 0 0"},"Inclus dans l'abonnement, en France : Netflix, Prime Video, Canal+, Apple TV+, Disney+. Les locations et achats ne sont pas comptés. Données JustWatch via TMDB."));
 }
 function renderMore(){
@@ -1205,7 +1269,7 @@ function renderMore(){
   box.appendChild(streamSection());
   box.appendChild(tonight());
   box.appendChild(listsSection());
-  const byTitle=(a,b)=>a.title.localeCompare(b.title,"fr");
+  const byTitle=(a,b)=>COL.compare(a.title,b.title);
   const mk=(t,test,sort)=>shelf(t,items.filter(test).sort(sort||byTitle),test);
   const out=[];
   const newest=[...items].sort((a,b)=>addedTs(b)-addedTs(a)).slice(0,30),newIds=new Set(newest.map(x=>x.id));
@@ -1214,12 +1278,29 @@ function renderMore(){
   out.push(mk("Films",i=>!isTv(i)&&!isAnim(i)&&!isDoc(i)));
   out.push(mk("Dessins animés",isAnim));
   out.push(mk("Documentaires",isDoc));
+  Object.entries(FMT).forEach(([k,l])=>out.push(mk(k==="grave"?"Disques gravés":l,i=>i.format===k)));
   out.push(mk("À voir",i=>!i.seen));
   out.push(mk("Déjà vus",i=>!!i.seen));
   out.push(mk("Mieux notés",i=>(i.rating||0)>=4||imdbN(i)>=8,(a,b)=>(b.rating||0)-(a.rating||0)||imdbN(b)-imdbN(a)));
   out.push(mk("Tout public",i=>i.age==="tp"));
   out.push(mk("Pour adultes (-16, -18)",i=>i.age==="16"||i.age==="18"));
   out.push(mk("Doublons",i=>dupIds.has(i.id)));
+  const rt=i=>!isTv(i)&&i.info&&+i.info.runtime>0?+i.info.runtime:0;
+  out.push(mk("Films courts (moins de 90 min)",i=>rt(i)&&rt(i)<90,(a,b)=>rt(a)-rt(b)));
+  out.push(mk("Films longs (plus de 2 h 30)",i=>rt(i)>=150,(a,b)=>rt(b)-rt(a)));
+  out.push(mk("Récents (depuis 2020)",i=>yr(i)>=2020,(a,b)=>yr(b)-yr(a)));
+  out.push(mk("Classiques (avant 1980)",i=>yr(i)&&yr(i)<1980,(a,b)=>yr(a)-yr(b)));
+  const dc={};items.forEach(i=>{const y=yr(i);if(y)dc[Math.floor(y/10)*10]=(dc[Math.floor(y/10)*10]||0)+1});
+  Object.entries(dc).filter(([,n])=>n>=3).sort((a,b)=>b[0]-a[0]).slice(0,8).forEach(([d])=>out.push(mk("Années "+d,i=>{const y=yr(i);return y&&Math.floor(y/10)*10===+d},(a,b)=>yr(a)-yr(b))));
+  const cn=(f)=>{const m={};items.forEach(i=>f(i).forEach(n=>{if(n)m[n]=(m[n]||0)+1}));return Object.entries(m).sort((a,b)=>b[1]-a[1])};
+  cn(i=>((i.info&&i.info.director)||"").split(", ")).filter(([,n])=>n>=3).slice(0,6).forEach(([n])=>out.push(mk("Réalisé par "+n,i=>((i.info&&i.info.director)||"").split(", ").includes(n),(a,b)=>yr(a)-yr(b))));
+  cn(i=>(i.info&&i.info.cast)||[]).filter(([,n])=>n>=4).slice(0,6).forEach(([n])=>out.push(mk("Avec "+n,i=>((i.info&&i.info.cast)||[]).includes(n),(a,b)=>yr(a)-yr(b))));
+  out.push(mk("Coffrets de séries (saisons partielles)",i=>isTv(i)&&!!(ownedOf(i)||[]).length));
+  out.push(mk("Vus mais pas encore notés",i=>!!i.seen&&!(i.rating>0)));
+  {const pool=[...items].sort(()=>Math.random()-.5).slice(0,18),ids=new Set(pool.map(x=>x.id));out.push(shelf("Au hasard",pool,i=>ids.has(i.id)))}
+  out.push(mk("À compléter : sans jaquette",i=>!i.cover));
+  out.push(mk("À compléter : fiche introuvable",i=>!!i.noinfo));
+  out.push(mk("À compléter : sans classification",i=>!i.age));
   const gc={};items.forEach(i=>(i.genres||"").split(",").map(x=>x.trim()).filter(Boolean).forEach(g=>gc[g]=(gc[g]||0)+1));
   Object.entries(gc).filter(([,n])=>n>=2).sort((a,b)=>b[1]-a[1]).slice(0,6).forEach(([g])=>out.push(mk("Genre : "+g,i=>(i.genres||"").split(",").map(x=>x.trim()).includes(g))));
   out.filter(Boolean).forEach(x=>box.appendChild(x));
@@ -1326,13 +1407,13 @@ async function freezeSprites(){
       if(!(n in sheets))sheets[n]=await new Promise(ok=>{const im=new Image();im.onload=()=>ok(im);im.onerror=()=>ok(null);im.src="s"+n+".jpg"});
       const im=sheets[n];if(!im){fail++;continue}
       try{
-        const cw=im.naturalWidth/10,ch=im.naturalHeight/10,col=(+p)%10,row=Math.floor(+p/10),w=Math.max(1,Math.min(180,Math.round(cw))),h=Math.max(1,Math.round(w*ch/cw)),c=document.createElement("canvas");
+        const cw=im.naturalWidth/10,ch=im.naturalHeight/10,col=(+p)%10,row=Math.floor(+p/10),w=Math.max(1,Math.min(160,Math.round(cw))),h=Math.max(1,Math.round(w*ch/cw)),c=document.createElement("canvas");
         c.width=w;c.height=h;c.getContext("2d").drawImage(im,col*cw,row*ch,cw,ch,0,0,w,h);
-        const d=c.toDataURL("image/jpeg",.7);if(d.length>200)res[u]=d;else fail++;
+        const d=c.toDataURL("image/jpeg",.68);c.width=c.height=0;if(d.length>200)res[u]=await storeImg(d);else fail++;
       }catch(e){fail++}
       await sleep(0);
     }
-    let n=0;items.forEach(i=>{if(res[i.cover]){i.cover=res[i.cover];i.u=Date.now();n++}});
+    let n=0;items.forEach(i=>{if(res[i.cover]){i.cover=res[i.cover];n++}});
     if(n){saveLocal();queueSync();render()}
   }catch(e){}
   spBusy=false;
@@ -1374,7 +1455,7 @@ $("bulkGo").onclick=()=>bulkAdd($("bulkT").value);
 $("bulkFile").onclick=()=>$("bulkIn").click();
 $("bulkIn").onchange=async e=>{const f=e.target.files[0];e.target.value="";if(!f)return;try{bulkAdd(await f.text())}catch(x){$("bulkSt").textContent="Fichier illisible."}};
 
-const APP_VERSION="01/11/2026 · v7.6";
+const APP_VERSION="01/11/2026 · v7.7";
 function fillSettings(){computeDups();fillStats();$("enrichSt").textContent=enrichText();fillRecent();$("verTxt").textContent="Version "+APP_VERSION;spStatus()}
 $("listD").addEventListener("close",()=>{if(curView==="more")renderMore();else if(curView==="home")render()});
 $("upd").onclick=async()=>{try{if(window.caches){for(const k of await caches.keys())await caches.delete(k)}const r=await fetch(location.pathname,{cache:"reload"});await r.text()}catch(e){}location.reload()};
@@ -1425,7 +1506,7 @@ async function sync(){
   if(!cfg.tok||!cfg.gid||syncing||!started)return;
   syncing=true;setSt("Synchronisation en cours…");
   try{
-    merge(await pull());saveLocal();if(curFilm===null)render();
+    merge(await pull());saveLocal();if(curFilm===null)render();migrateInline();
     const w=await gh("/gists/"+cfg.gid,{method:"PATCH",body:JSON.stringify({files:{"dvdtheque.json":{content:payload()}}})});
     if(!w.ok)throw new Error("Écriture impossible.");
     setSt("Synchronisé à "+new Date().toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})+".");
@@ -1445,16 +1526,25 @@ document.addEventListener("visibilitychange",()=>{if(!document.hidden)sync()});
 function startSync(){if(cfg.tok&&cfg.gid){setSt("Synchronisation activée.");sync()}}
 
 /* ---------- Export / import ---------- */
-function buildBackup(){
+async function buildBackup(){
   const prefs={};try{prefs.view=localStorage.getItem("movy-view")||""}catch(e){}
-  return {app:"MOVY",format:3,exportedAt:new Date().toISOString(),items,del,lists,
+  const its=[];
+  for(const i of items){
+    if(/^idb:/.test(i.cover||"")){const b=await idbGetIn("img",i.cover.slice(4)).catch(()=>null);its.push(Object.assign({},i,{cover:b?await blobToData(b):((i.info&&i.info.poster)||"")}))}
+    else its.push(i);
+  }
+  return {app:"MOVY",format:3,exportedAt:new Date().toISOString(),items:its,del,lists,
     keys:{tmdb:tmKey(),omdb:omdbKey()},
     sync:(cfg&&cfg.tok)?{tok:cfg.tok,gid:cfg.gid||""}:null,prefs};
 }
-$("exp").onclick=()=>{
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(new Blob([JSON.stringify(buildBackup(),null,2)],{type:"application/json"}));
-  a.download="movy-sauvegarde-"+new Date().toISOString().slice(0,10)+".json";a.click();
+$("exp").onclick=async()=>{
+  const bt=$("exp");bt.disabled=true;const t0=bt.textContent;bt.textContent="Préparation…";
+  try{
+    const bk=await buildBackup(),a=document.createElement("a");
+    a.href=URL.createObjectURL(new Blob([JSON.stringify(bk)],{type:"application/json"}));
+    a.download="movy-sauvegarde-"+new Date().toISOString().slice(0,10)+".json";a.click();
+  }catch(e){alert("Export impossible : "+((e&&e.message)||"erreur")+".")}
+  bt.disabled=false;bt.textContent=t0;
 };
 $("impBtn").onclick=()=>$("imp").click();
 $("imp").onchange=async e=>{
@@ -1485,14 +1575,14 @@ $("imp").onchange=async e=>{
         if(raw.prefs&&raw.prefs.view&&!localStorage.getItem("movy-view")){view=raw.prefs.view;localStorage.setItem("movy-view",view)}
       }catch(x){}
     }
-    saveLocal();queueSync();render();enrichAll();
+    saveLocal();queueSync();render();enrichAll();migrateInline();
     alert("Sauvegarde fusionnée : "+added+" ajouté"+(added>1?"s":"")+", "+updated+" mis à jour (plus récents dans la sauvegarde), "+kept+" conservé"+(kept>1?"s":"")+" tel"+(kept>1?"s":"")+" quel"+(kept>1?"s":"")+" (plus récents sur cet appareil, jaquettes comprises)"+(gone?", "+gone+" ignoré"+(gone>1?"s":"")+" (supprimés depuis)":"")+".");
   }catch(err){alert("Fichier illisible.")}
 };
 function startApp(){
   if(started)return;started=true;
   let n=0;items.forEach(i=>{if(stripHist(i)){i.u=Date.now();n++}});if(n)saveLocal();
-  newQuote();route();startSync();setTimeout(freezeSprites,1500);setTimeout(enrichAll,2500);
+  newQuote();route();startSync();setTimeout(migrateInline,1000);setTimeout(freezeSprites,1800);setTimeout(enrichAll,2500);setTimeout(gcImgs,20000);
 }
 Promise.race([bootDB(),sleep(4000)]).then(startApp,startApp);
 </script>
