@@ -95,6 +95,8 @@ dialog h2{margin:0 0 10px;font:700 1.15rem "Iowan Old Style",Georgia,serif}
 .li .tx{min-width:0}.li .t{font-weight:700}
 .li.seen{opacity:.7}
 .picks{display:flex;gap:8px;overflow-x:auto}
+.brand{display:flex;gap:10px;align-items:center}
+.brand img{width:44px;height:44px;border-radius:10px;flex:none;display:block}
 .picks img{height:120px;border-radius:6px;border:3px solid transparent;cursor:pointer;flex:none}
 .picks img.on{border-color:var(--acc)}
 .pk{flex:none;width:84px;height:120px;border:2px dashed var(--line);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;font:600 .72rem/1.2 system-ui;cursor:pointer;background:var(--card);color:var(--ink);padding:4px}
@@ -179,8 +181,8 @@ details.rc summary{cursor:pointer;font-weight:600}
 <div id="topbar" aria-hidden="true"></div>
 <div id="az" aria-hidden="true"></div><div id="azBub" hidden></div>
 <main id="home">
-<div class="top"><div><h1>MOVY</h1>
-<p class="sub">Ma collection de films et séries.</p></div><button class="btn ghost gear" id="view" type="button">☰ Liste</button></div>
+<div class="top"><div class="brand"><img id="logo" src="apple-touch-icon.png" alt="" width="44" height="44" onerror="this.style.display='none'"><div><h1>MOVY</h1>
+<p class="sub">Ma collection de films et séries.</p></div></div><button class="btn ghost gear" id="view" type="button">☰ Liste</button></div>
 <div class="scope" id="scopeBar" hidden><span id="scopeLbl"></span><button id="scopeX" type="button">✕ Retirer</button></div>
 <div class="tabs" id="tabs"></div>
 <button class="qband" id="qband" type="button" aria-label="Afficher une autre réplique"><span class="ql"><span id="qt"></span><span id="qs"></span></span></button>
@@ -231,8 +233,12 @@ details.rc summary{cursor:pointer;font-weight:600}
     <div class="bar"><button class="btn ghost" id="exp">Exporter (JSON)</button><button class="btn ghost" id="impBtn">Importer</button><input type="file" id="imp" accept="application/json" hidden></div>
   </div>
   <div class="sec">
-    <h3>Application</h3>
-    <p class="note" id="verTxt"></p>
+    <h3>Jaquettes</h3>
+    <p class="note" id="spSt"></p>
+    <button class="btn ghost" id="spBtn" hidden>Enregistrer les jaquettes dans l'appli</button>
+  </div>
+  <div class="sec">
+    <p class="note" id="verTxt" style="margin-top:0"></p>
     <button class="btn ghost" id="upd">Mettre à jour l'application</button>
   </div>
   <div class="sec">
@@ -328,7 +334,7 @@ try{
 }catch(e){lists=defaults()}
 try{cfg=JSON.parse(localStorage.getItem(SK)||"{}")}catch(e){cfg={}}
 /* anciennes photos d'iPhone gardées dans l'historique des jaquettes remplacées : supprimées */
-function stripHist(i){if(!i||!Array.isArray(i.coverHist))return false;const h=i.coverHist.filter(u=>!/^data:/.test(u));if(h.length===i.coverHist.length)return false;i.coverHist=h;return true}
+function stripHist(i){if(!i||!Array.isArray(i.coverHist))return false;const h=i.coverHist.filter(u=>!/^(data:|sp:)/.test(u));if(h.length===i.coverHist.length)return false;i.coverHist=h;return true}
 (function(){let n=0;items.forEach(i=>{if(stripHist(i)){i.u=Date.now();n++}});if(n){try{localStorage.setItem(KEY,JSON.stringify({items,del,lists}))}catch(e){}}})();
 function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify({items,del,lists}))}catch(e){alert("Stockage plein. Exporte ta bibliothèque en JSON pour la sauvegarde.")}}
 function save(i){if(i)i.u=Date.now();saveLocal();queueSync()}
@@ -615,10 +621,10 @@ async function lookupUpc(code){
   const base="https://api.upcitemdb.com/prod/trial/lookup?upc="+encodeURIComponent(code);
   const routes=[base,"https://corsproxy.io/?url="+encodeURIComponent(base),"https://api.allorigins.win/raw?url="+encodeURIComponent(base)];
   let limit=false,err="";
-  /* les 3 chemins partent en même temps : le premier qui répond gagne (6 s maximum au total) */
+  /* les 3 chemins partent en même temps : le premier qui répond gagne (3,5 s maximum au total) */
   const one=async u=>{
     try{
-      const r=await getRes(u,6000);
+      const r=await getRes(u,3500);
       if(r.status===429){limit=true;throw 0}
       if(!r.ok){err="erreur "+r.status;throw 0}
       const j=await r.json();
@@ -631,26 +637,31 @@ async function lookupUpc(code){
   try{return await first(routes.map(one))}
   catch(e){const x=new Error(limit?"limite":err||"indisponible");x.limit=limit;throw x}
 }
+function upcCache(code,v){try{const m=JSON.parse(localStorage.getItem("movy-upc")||"{}");if(v===undefined)return m[code]||null;m[code]=v;const k=Object.keys(m);if(k.length>200)delete m[k[0]];localStorage.setItem("movy-upc",JSON.stringify(m))}catch(e){return null}}
 async function onCode(code){
   stopScan();if($("scanD").open)$("scanD").close();
   const out=$("res"),pk=$("pick");pk.innerHTML="";pendingCover="";pendingCode=code;
-  const fail=m=>{out.textContent=m+" Code lu : "+code+". Cherche le titre ci-dessous, ou tape-le. ";const a=document.createElement("a");a.href="https://www.google.com/search?q="+encodeURIComponent(code+" dvd blu-ray");a.target="_blank";a.rel="noopener";a.textContent="Chercher ce code sur Google";out.appendChild(a);$("mt").focus()};
+  const fail=m=>{out.textContent=m+" Tape le titre ci-dessous. ";const a=document.createElement("a");a.href="https://www.google.com/search?q="+encodeURIComponent(code+" dvd blu-ray");a.target="_blank";a.rel="noopener";a.textContent="Chercher sur Google";out.appendChild(a);$("mt").focus()};
   if(!$("addD").open)$("addD").showModal();
   const have=items.find(x=>x.code===code);
-  const warn=have?"Attention : ce code-barre est déjà dans ta collection (« "+have.title+" », "+FMT[have.format]+"). ":"";
-  out.textContent=warn+"Code "+code+" : recherche du produit (6 secondes au plus)… Tu peux déjà taper le titre.";
+  const warn=have?"Déjà dans ta collection : « "+have.title+" » ("+FMT[have.format]+"). ":"";
+  out.textContent=warn+"Code "+code+" : recherche rapide…";
   try{
-    let it;
-    try{it=(await lookupUpc(code)).item;if(pendingCode!==code)return}catch(e){if(pendingCode!==code)return;fail(warn+(e.limit?"Limite de recherches atteinte pour aujourd’hui.":"La recherche en ligne n'a pas répondu ("+(e.message||"erreur")+").")+" Le code est gardé avec le disque.");return}
-    if(!it||!it.title){fail(warn+"Code non reconnu par la base.");return}
+    let it=upcCache(code);
+    if(!it){
+      try{it=(await lookupUpc(code)).item;if(pendingCode!==code)return}
+      catch(e){if(pendingCode!==code)return;fail(warn+(e.limit?"Limite de recherches atteinte.":"Produit non trouvé en ligne."));return}
+      if(it&&it.title)upcCache(code,{title:it.title,images:(it.images||[]).slice(0,4)});
+    }
+    if(!it||!it.title){fail(warn+"Code inconnu de la base.");return}
     const raw=it.title,low=raw.toLowerCase();
     if(/4k|uhd/.test(low))$("fmt").value="uhd";else if(/blu-?ray/.test(low))$("fmt").value="br";else if(/dvd/.test(low))$("fmt").value="dvd";
     if(!$("mt").value.trim())$("mt").value=cleanTitle(raw.replace(/blu-?ray|4k|uhd|ultra hd|dvd|steelbook/ig," "));
     const imgs=(it.images||[]).filter(u=>/^https:/.test(u)).slice(0,6);
-    out.textContent=warn+(imgs.length?"Produit trouvé. Touche la jaquette qui correspond, ou prends une photo.":"Produit trouvé, mais sans image. Prends la jaquette en photo.");
+    out.textContent=warn+(imgs.length?"Produit trouvé. Choisis la jaquette, ou prends une photo.":"Produit trouvé, sans image. Prends la jaquette en photo.");
     imgs.forEach(u=>{const im=img(u,"Jaquette proposée");im.onclick=()=>{pk.querySelectorAll("img").forEach(x=>x.classList.remove("on"));im.classList.add("on");pendingCover=u};im.onerror=()=>im.remove();pk.appendChild(im)});
     suggest($("mt").value.trim());
-  }catch(e){fail(warn+"Erreur pendant la recherche ("+((e&&e.message)||"inconnue")+").")}
+  }catch(e){if(pendingCode===code)fail(warn+"Recherche impossible.")}
 }
 
 /* ---------- Sources d'infos : TMDB, Wikidata, Wikipédia ---------- */
@@ -854,7 +865,7 @@ function coverChoices(i,withCur){
   return out;
 }
 const live=i=>items.find(z=>z.id===i.id)||i;
-function pushCoverHist(i){if(!i.cover)return;i.coverHist=[i.cover,...(i.coverHist||[]).filter(u=>u!==i.cover)].filter(u=>!/^data:/.test(u)).slice(0,4)}
+function pushCoverHist(i){if(!i.cover)return;i.coverHist=[i.cover,...(i.coverHist||[]).filter(u=>u!==i.cover)].filter(u=>!/^(data:|sp:)/.test(u)).slice(0,4)}
 function coverFail(e){alert("La jaquette n'a pas pu être changée"+(e&&e.message?" ("+e.message+")":"")+". Réessaie.")}
 function undoCover(i0){try{const i=live(i0),h=i.coverHist||[];if(!h.length)return;i.cover=h[0];i.coverHist=h.slice(1);save(i);showFilm(i);render()}catch(e){coverFail(e)}}
 function setCover(i0,u){try{const i=live(i0);pushCoverHist(i);i.cover=/image\.tmdb\.org\/t\/p\/w\d+\//.test(u)?u.replace(/\/t\/p\/w\d+\//,"/t/p/w500/"):u;save(i);showFilm(i);render()}catch(e){coverFail(e)}}
@@ -1233,8 +1244,46 @@ function fillStats(){
   out.forEach((c,k)=>{car.appendChild(c);dots.appendChild(el("i",{class:k?"":"on"}))});
   car.onscroll=()=>{const w=(car.firstChild.offsetWidth||1)+10,k=Math.round(car.scrollLeft/w);[...dots.children].forEach((d,j)=>d.classList.toggle("on",j===k))};
 }
-const APP_VERSION="01/11/2026 · v7.3";
-function fillSettings(){computeDups();fillStats();$("enrichSt").textContent=enrichText();fillRecent();$("verTxt").textContent="Version affichée : "+APP_VERSION+". Après avoir remplacé index.html sur GitHub, attends environ 10 minutes, puis touche ce bouton. Ne supprime pas le raccourci de l'écran d'accueil : tes disques sont enregistrés dedans."}
+/* ---------- Jaquettes du dépôt (s1.jpg…) -> enregistrées dans l'appli ---------- */
+const SPRE=/^sp:(\d+):(\d+)$/;
+const spLeft=()=>{const s=new Set();items.forEach(i=>{if(SPRE.test(i.cover||""))s.add(i.cover)});return s};
+let spBusy=false;
+function spStatus(msg){
+  const e=$("spSt"),b=$("spBtn");if(!e)return;const n=spLeft().size;
+  e.textContent=msg||(n?n+" jaquette"+(n>1?"s":"")+" dépendent encore des photos du dépôt GitHub.":"Toutes les jaquettes sont enregistrées dans l'appli. Tu peux supprimer les photos du dépôt GitHub.");
+  b.hidden=!n||spBusy;
+}
+async function freezeSprites(){
+  if(spBusy)return;const need=[...spLeft()];if(!need.length){spStatus();return}
+  spBusy=true;spStatus("Enregistrement des jaquettes…");
+  const sheets={},res={};let fail=0;
+  try{
+    for(const u of need){
+      const [,n,p]=SPRE.exec(u);
+      if(!(n in sheets))sheets[n]=await new Promise(ok=>{const im=new Image();im.onload=()=>ok(im);im.onerror=()=>ok(null);im.src="s"+n+".jpg"});
+      const im=sheets[n];if(!im){fail++;continue}
+      try{
+        const cw=im.naturalWidth/10,ch=im.naturalHeight/10,col=(+p)%10,row=Math.floor(+p/10),w=Math.max(1,Math.min(220,Math.round(cw))),h=Math.max(1,Math.round(w*ch/cw)),c=document.createElement("canvas");
+        c.width=w;c.height=h;c.getContext("2d").drawImage(im,col*cw,row*ch,cw,ch,0,0,w,h);
+        const d=c.toDataURL("image/jpeg",.72);if(d.length>200)res[u]=d;else fail++;
+      }catch(e){fail++}
+      await sleep(0);
+    }
+    let n=0;items.forEach(i=>{if(res[i.cover]){i.cover=res[i.cover];i.u=Date.now();n++}});
+    if(n){saveLocal();queueSync();render()}
+  }catch(e){}
+  spBusy=false;
+  spStatus(fail?spLeft().size+" jaquette"+(spLeft().size>1?"s":"")+" introuvable"+(spLeft().size>1?"s":"")+" (photos du dépôt manquantes). Les autres sont enregistrées.":"");
+}
+$("spBtn").onclick=freezeSprites;
+setTimeout(freezeSprites,1500);
+
+(function(){const lg=$("logo");let c="";try{c=localStorage.getItem("movy-logo")||""}catch(e){}
+  if(c){lg.src=c;lg.style.display=""}
+  else lg.addEventListener("load",()=>{try{const cv=document.createElement("canvas");cv.width=cv.height=96;cv.getContext("2d").drawImage(lg,0,0,96,96);localStorage.setItem("movy-logo",cv.toDataURL("image/png"))}catch(e){}},{once:true});
+})();
+const APP_VERSION="01/11/2026 · v7.4";
+function fillSettings(){computeDups();fillStats();$("enrichSt").textContent=enrichText();fillRecent();$("verTxt").textContent="Version "+APP_VERSION;spStatus()}
 $("listD").addEventListener("close",()=>{if(curView==="more")renderMore();else if(curView==="home")render()});
 $("upd").onclick=async()=>{try{if(window.caches){for(const k of await caches.keys())await caches.delete(k)}const r=await fetch(location.pathname,{cache:"reload"});await r.text()}catch(e){}location.reload()};
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
