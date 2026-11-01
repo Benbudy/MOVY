@@ -615,18 +615,21 @@ async function lookupUpc(code){
   const base="https://api.upcitemdb.com/prod/trial/lookup?upc="+encodeURIComponent(code);
   const routes=[base,"https://corsproxy.io/?url="+encodeURIComponent(base),"https://api.allorigins.win/raw?url="+encodeURIComponent(base)];
   let limit=false,err="";
-  for(const u of routes){
+  /* les 3 chemins partent en même temps : le premier qui répond gagne (6 s maximum au total) */
+  const one=async u=>{
     try{
-      const r=await getRes(u,9000);
-      if(r.status===429){limit=true;continue}
-      if(!r.ok){err="erreur "+r.status;continue}
+      const r=await getRes(u,6000);
+      if(r.status===429){limit=true;throw 0}
+      if(!r.ok){err="erreur "+r.status;throw 0}
       const j=await r.json();
       if(j&&Array.isArray(j.items))return {item:j.items[0]||null};
-      if(j&&j.code==="EXCEED_LIMIT"){limit=true;continue}
-      err="réponse inattendue";
-    }catch(e){err=(e&&e.name==="AbortError")?"délai dépassé":(e&&e.name==="SyntaxError")?"réponse illisible":"service injoignable"}
-  }
-  const x=new Error(limit?"limite":err||"indisponible");x.limit=limit;throw x;
+      if(j&&j.code==="EXCEED_LIMIT"){limit=true;throw 0}
+      err="réponse inattendue";throw 0;
+    }catch(e){if(e)err=(e.name==="AbortError")?"délai dépassé":(e.name==="SyntaxError")?"réponse illisible":"service injoignable";throw 0}
+  };
+  const first=ps=>new Promise((ok,ko)=>{let n=ps.length;ps.forEach(p=>p.then(ok,()=>{if(--n===0)ko()}))});
+  try{return await first(routes.map(one))}
+  catch(e){const x=new Error(limit?"limite":err||"indisponible");x.limit=limit;throw x}
 }
 async function onCode(code){
   stopScan();if($("scanD").open)$("scanD").close();
@@ -635,14 +638,14 @@ async function onCode(code){
   if(!$("addD").open)$("addD").showModal();
   const have=items.find(x=>x.code===code);
   const warn=have?"Attention : ce code-barre est déjà dans ta collection (« "+have.title+" », "+FMT[have.format]+"). ":"";
-  out.textContent=warn+"Code "+code+" : recherche du produit…";
+  out.textContent=warn+"Code "+code+" : recherche du produit (6 secondes au plus)… Tu peux déjà taper le titre.";
   try{
     let it;
-    try{it=(await lookupUpc(code)).item}catch(e){fail(warn+(e.limit?"Limite de recherches atteinte pour aujourd’hui.":"La recherche en ligne n'a pas répondu ("+(e.message||"erreur")+").")+" Le code est gardé avec le disque.");return}
+    try{it=(await lookupUpc(code)).item;if(pendingCode!==code)return}catch(e){if(pendingCode!==code)return;fail(warn+(e.limit?"Limite de recherches atteinte pour aujourd’hui.":"La recherche en ligne n'a pas répondu ("+(e.message||"erreur")+").")+" Le code est gardé avec le disque.");return}
     if(!it||!it.title){fail(warn+"Code non reconnu par la base.");return}
     const raw=it.title,low=raw.toLowerCase();
     if(/4k|uhd/.test(low))$("fmt").value="uhd";else if(/blu-?ray/.test(low))$("fmt").value="br";else if(/dvd/.test(low))$("fmt").value="dvd";
-    $("mt").value=cleanTitle(raw.replace(/blu-?ray|4k|uhd|ultra hd|dvd|steelbook/ig," "));
+    if(!$("mt").value.trim())$("mt").value=cleanTitle(raw.replace(/blu-?ray|4k|uhd|ultra hd|dvd|steelbook/ig," "));
     const imgs=(it.images||[]).filter(u=>/^https:/.test(u)).slice(0,6);
     out.textContent=warn+(imgs.length?"Produit trouvé. Touche la jaquette qui correspond, ou prends une photo.":"Produit trouvé, mais sans image. Prends la jaquette en photo.");
     imgs.forEach(u=>{const im=img(u,"Jaquette proposée");im.onclick=()=>{pk.querySelectorAll("img").forEach(x=>x.classList.remove("on"));im.classList.add("on");pendingCover=u};im.onerror=()=>im.remove();pk.appendChild(im)});
@@ -1230,7 +1233,7 @@ function fillStats(){
   out.forEach((c,k)=>{car.appendChild(c);dots.appendChild(el("i",{class:k?"":"on"}))});
   car.onscroll=()=>{const w=(car.firstChild.offsetWidth||1)+10,k=Math.round(car.scrollLeft/w);[...dots.children].forEach((d,j)=>d.classList.toggle("on",j===k))};
 }
-const APP_VERSION="31/10/2026 · v7.2";
+const APP_VERSION="01/11/2026 · v7.3";
 function fillSettings(){computeDups();fillStats();$("enrichSt").textContent=enrichText();fillRecent();$("verTxt").textContent="Version affichée : "+APP_VERSION+". Après avoir remplacé index.html sur GitHub, attends environ 10 minutes, puis touche ce bouton. Ne supprime pas le raccourci de l'écran d'accueil : tes disques sont enregistrés dedans."}
 $("listD").addEventListener("close",()=>{if(curView==="more")renderMore();else if(curView==="home")render()});
 $("upd").onclick=async()=>{try{if(window.caches){for(const k of await caches.keys())await caches.delete(k)}const r=await fetch(location.pathname,{cache:"reload"});await r.text()}catch(e){}location.reload()};
