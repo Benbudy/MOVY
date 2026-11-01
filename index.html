@@ -29,6 +29,7 @@ main,#film{max-width:900px;margin:0 auto;padding:16px 12px calc(110px + env(safe
 h1{font:700 1.6rem/1.1 "Iowan Old Style",Georgia,serif;margin:0 0 2px}
 .sub{color:var(--mute);margin:0 0 14px;font-size:.9rem}
 input,select,button{font:inherit;color:var(--ink)}
+textarea{width:100%;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:11px 12px;font:inherit;color:var(--ink);resize:vertical}
 input,select{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:11px 12px;min-width:0;width:100%}
 :focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 [hidden]{display:none!important}
@@ -95,11 +96,13 @@ dialog h2{margin:0 0 10px;font:700 1.15rem "Iowan Old Style",Georgia,serif}
 .li .tx{min-width:0}.li .t{font-weight:700}
 .li.seen{opacity:.7}
 .picks{display:flex;gap:8px;overflow-x:auto}
-.brand{display:flex;gap:10px;align-items:center}
-.brand img{width:44px;height:44px;border-radius:10px;flex:none;display:block}
+.brand{display:flex;gap:10px;align-items:flex-start}
+.brand img{width:50px;height:50px;border-radius:10px;flex:none;display:block}
 .sres{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
 .sres img,.sres .ph{width:46px;height:69px;object-fit:cover;border-radius:4px;flex:none;background:var(--line)}
 .sres .pl{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.sres.has{border-left:5px solid var(--c);padding-left:8px;background:color-mix(in srgb,var(--c) 14%,transparent)}
+.sres .pl span.fc{background:var(--c);color:#fff;border:1px solid rgba(255,255,255,.35)}
 .sres .pl span{background:var(--ink);color:var(--bg);border-radius:99px;padding:3px 9px;font:700 .74rem system-ui}
 .picks img{height:120px;border-radius:6px;border:3px solid transparent;cursor:pointer;flex:none}
 .picks img.on{border-color:var(--acc)}
@@ -164,7 +167,6 @@ details.rc summary{cursor:pointer;font-weight:600}
 #az.show{opacity:1;pointer-events:auto}
 #az span{font:700 .62rem/1 system-ui;color:var(--ink)}
 #az span.off{opacity:.3}
-#azBub{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:84px;height:84px;border-radius:18px;background:rgba(0,0,0,.72);color:#fff;font:700 2.6rem/84px system-ui;text-align:center;z-index:70;pointer-events:none}
 .stcar{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 -12px;padding:0 12px 4px}
 .stcar::-webkit-scrollbar{display:none}
 .stc{flex:none;width:82%;max-width:340px;min-height:210px;scroll-snap-align:start;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
@@ -183,9 +185,9 @@ details.rc summary{cursor:pointer;font-weight:600}
 </head>
 <body>
 <div id="topbar" aria-hidden="true"></div>
-<div id="az" aria-hidden="true"></div><div id="azBub" hidden></div>
+<div id="az" aria-hidden="true"></div>
 <main id="home">
-<div class="top"><div class="brand"><img id="logo" src="apple-touch-icon.png" alt="" width="44" height="44" onerror="this.style.display='none'"><div><h1>MOVY</h1>
+<div class="top"><div class="brand"><img id="logo" src="apple-touch-icon.png" alt="" width="50" height="50" onerror="this.style.display='none'"><div><h1>MOVY</h1>
 <p class="sub">Ma collection de films et séries.</p></div></div><button class="btn ghost gear" id="view" type="button">☰ Liste</button></div>
 <div class="scope" id="scopeBar" hidden><span id="scopeLbl"></span><button id="scopeX" type="button">✕ Retirer</button></div>
 <div class="tabs" id="tabs"></div>
@@ -233,13 +235,16 @@ details.rc summary{cursor:pointer;font-weight:600}
     <div class="st note" id="syncSt"></div>
   </div>
   <div class="sec">
-    <h3>Sauvegarde</h3>
-    <div class="bar"><button class="btn ghost" id="exp">Exporter (JSON)</button><button class="btn ghost" id="impBtn">Importer</button><input type="file" id="imp" accept="application/json" hidden></div>
+    <h3>Ajouter une liste de films</h3>
+    <p class="note">Un titre par ligne. Année et format sont facultatifs : « Alien ; 1979 ; Blu-ray ».</p>
+    <textarea id="bulkT" rows="5" placeholder="Alien&#10;Heat ; 1995&#10;Dune ; 2021 ; 4K" autocapitalize="off" spellcheck="false"></textarea>
+    <div class="bar" style="margin-top:8px"><select id="bulkF" aria-label="Format par défaut"><option value="dvd">DVD</option><option value="br">Blu-ray</option><option value="uhd">4K UHD</option><option value="grave">Gravé</option><option value="mkv">MKV</option></select><button class="btn" id="bulkGo" type="button" style="flex:1">Ajouter la liste</button></div>
+    <div class="bar"><button class="btn ghost" id="bulkFile" type="button">Importer un fichier (.txt, .csv)</button><input type="file" id="bulkIn" accept=".txt,.csv,text/plain,text/csv" hidden></div>
+    <p class="note" id="bulkSt"></p>
   </div>
   <div class="sec">
-    <h3>Jaquettes</h3>
-    <p class="note" id="spSt"></p>
-    <button class="btn ghost" id="spBtn" hidden>Enregistrer les jaquettes dans l'appli</button>
+    <h3>Sauvegarde</h3>
+    <div class="bar"><button class="btn ghost" id="exp">Exporter (JSON)</button><button class="btn ghost" id="impBtn">Importer</button><input type="file" id="imp" accept="application/json" hidden></div>
   </div>
   <div class="sec">
     <p class="note" id="verTxt" style="margin-top:0"></p>
@@ -337,10 +342,30 @@ try{
   else{const o=JSON.parse(localStorage.getItem(OLD)||"[]");if(Array.isArray(o))items=o.map(i=>({...i,u:i.u||1}));lists=defaults()}
 }catch(e){lists=defaults()}
 try{cfg=JSON.parse(localStorage.getItem(SK)||"{}")}catch(e){cfg={}}
+/* ---------- Stockage : IndexedDB (très grand) au lieu de localStorage (5 Mo) ---------- */
+let dbp=null,idbOK=false,started=false,wBusy=false,wDirty=false,warned=false;
+function idb(){return dbp||(dbp=new Promise((ok,ko)=>{try{const r=indexedDB.open("movy",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>ok(r.result);r.onerror=()=>ko(r.error);r.onblocked=()=>ko(new Error("blocked"))}catch(e){ko(e)}}))}
+const idbGet=k=>idb().then(db=>new Promise((ok,ko)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>ok(q.result);q.onerror=()=>ko(q.error)}));
+const idbSet=(k,v)=>idb().then(db=>new Promise((ok,ko)=>{const t=db.transaction("kv","readwrite");t.objectStore("kv").put(v,k);t.oncomplete=()=>ok();t.onerror=()=>ko(t.error);t.onabort=()=>ko(t.error)}));
+function saveFallback(){try{localStorage.setItem(KEY,JSON.stringify({items,del,lists}))}catch(e){if(!warned){warned=true;alert("Impossible d'enregistrer sur cet appareil (stockage plein). Exporte ta bibliothèque dans Réglages > Sauvegarde.")}}}
+function saveLocal(){
+  if(!idbOK){saveFallback();return}
+  wDirty=true;if(wBusy)return;wBusy=true;
+  (async()=>{try{while(wDirty){wDirty=false;await idbSet("state",JSON.stringify({items,del,lists}))}}catch(e){saveFallback()}wBusy=false})();
+}
+async function bootDB(){
+  try{
+    const raw=await idbGet("state");
+    if(raw){const st=JSON.parse(raw);if(st&&Array.isArray(st.items))merge({items:st.items,del:st.del||{},lists:st.lists})}
+    idbOK=true;
+    await idbSet("state",JSON.stringify({items,del,lists}));
+    const chk=await idbGet("state");
+    if(chk&&chk.length>2){try{localStorage.removeItem(KEY)}catch(e){}}
+    if(started)render();
+  }catch(e){idbOK=false}
+}
 /* anciennes photos d'iPhone gardées dans l'historique des jaquettes remplacées : supprimées */
 function stripHist(i){if(!i||!Array.isArray(i.coverHist))return false;const h=i.coverHist.filter(u=>!/^(data:|sp:)/.test(u));if(h.length===i.coverHist.length)return false;i.coverHist=h;return true}
-(function(){let n=0;items.forEach(i=>{if(stripHist(i)){i.u=Date.now();n++}});if(n){try{localStorage.setItem(KEY,JSON.stringify({items,del,lists}))}catch(e){}}})();
-function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify({items,del,lists}))}catch(e){alert("Stockage plein. Exporte ta bibliothèque en JSON pour la sauvegarde.")}}
 function save(i){if(i)i.u=Date.now();saveLocal();queueSync()}
 const payload=()=>JSON.stringify({items,del,lists});
 function ls(k){try{return localStorage.getItem(k)||""}catch(e){return ""}}
@@ -839,6 +864,7 @@ function showFilm(i){
   box.appendChild(el("div",{class:"sec stack"},
     el("button",{class:"btn danger",onclick:()=>{if(confirm("Supprimer « "+i.title+" » ?")){items=items.filter(z=>z.id!==i.id);del[i.id]=Date.now();save();goBack();render()}}},"Supprimer ce disque"),
     el("button",{class:"btn ghost",onclick:()=>openMatch(i)},inf?"Ce n'est pas le bon film ? Le chercher":"Chercher ce film")));
+  {const t=addedTs(i);box.appendChild(el("p",{class:"note",style:"text-align:center;margin:6px 0 0"},t>1e11?"Ajouté le "+new Date(t).toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"}):"Date d'ajout inconnue"))}
   fillDyn(i);
   if(needInfo(i))fetchInfo(i).then(()=>{if(curFilm===i.id){const it=items.find(z=>z.id===i.id);if(it)showFilm(it)}render()});
   else if(omdbKey()&&inf&&!inf.imdb&&!inf.imdbTry){inf.imdbTry=1;addImdb(inf,i).then(()=>{saveLocal();if(curFilm===i.id&&inf.imdb){const it=items.find(z=>z.id===i.id);if(it)showFilm(it)}})}
@@ -1098,7 +1124,7 @@ $("fclear").onclick=()=>{["seen","age","genre","decade","list"].forEach(id=>$(id
 $("view").onclick=()=>{view=view==="grid"?"list":"grid";try{localStorage.setItem("movy-view",view)}catch(e){}render()};
 
 /* ---------- Index alphabétique (accueil) ---------- */
-const AZL=["#",..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"],azBox=$("az"),azBub=$("azBub");let azT=null,azOn=false;
+const AZL=["#",..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"],azBox=$("az");let azT=null,azOn=false;
 AZL.forEach(l=>azBox.appendChild(el("span",{"data-l":l},l)));
 function letterOf(t){const c=nrm(t).replace(/[^a-z0-9]/g,"").charAt(0);return /[a-z]/.test(c)?c.toUpperCase():"#"}
 function azUpdate(){
@@ -1112,13 +1138,12 @@ function azJump(y){
   let t=els.find(e=>e.dataset.l===L);
   for(let k=idx+1;k<AZL.length&&!t;k++)t=els.find(e=>e.dataset.l===AZL[k]);
   for(let k=idx-1;k>=0&&!t;k--)t=els.find(e=>e.dataset.l===AZL[k]);
-  azBub.textContent=L;azBub.hidden=false;
   if(t)window.scrollTo(0,Math.max(0,t.getBoundingClientRect().top+window.scrollY-(parseInt(getComputedStyle(document.documentElement).getPropertyValue("--topH"))||0)-12));
 }
 azBox.addEventListener("pointerdown",e=>{azOn=true;try{azBox.setPointerCapture(e.pointerId)}catch(x){}azJump(e.clientY);e.preventDefault()});
 azBox.addEventListener("pointermove",e=>{if(azOn)azJump(e.clientY)});
-const azEnd=()=>{azOn=false;azBub.hidden=true;clearTimeout(azT);azT=setTimeout(()=>azBox.classList.remove("show"),1500)};
-azBox.addEventListener("pointerup",azEnd);azBox.addEventListener("pointercancel",azEnd);
+const azEnd=()=>{azOn=false;clearTimeout(azT);azT=setTimeout(()=>azBox.classList.remove("show"),1500)};
+azBox.addEventListener("pointerup",azEnd);azBox.addEventListener("pointercancel",azEnd);azBox.addEventListener("lostpointercapture",azEnd);azBox.addEventListener("touchend",azEnd,{passive:true});azBox.addEventListener("touchcancel",azEnd,{passive:true});
 
 /* ---------- Explorer (2e onglet) ---------- */
 function shelf(title,arr,test){
@@ -1145,6 +1170,8 @@ function listsSection(){
 const PLAT=[[/netflix/i,"Netflix"],[/prime video|amazon prime/i,"Prime Video"],[/canal\+|canal plus/i,"Canal+"],[/apple tv/i,"Apple TV+"],[/disney/i,"Disney+"]];
 function streamSection(){
   const inp=el("input",{type:"search",placeholder:"Titre d'un film ou d'une série…",autocomplete:"off",autocapitalize:"off","aria-label":"Chercher où regarder un titre"}),res=el("div",{style:"margin-top:8px"});
+  const xb=el("button",{type:"button","aria-label":"Effacer la recherche",hidden:true,onclick:()=>{inp.value="";res.innerHTML="";xb.hidden=true;inp.focus()}},"✕");
+  inp.addEventListener("input",()=>{xb.hidden=!inp.value});
   const go=async()=>{
     const q=inp.value.trim();if(q.length<2){inp.focus();return}
     if(!tmKey()){res.textContent="Ajoute ta clé TMDB dans Réglages pour utiliser cette recherche.";return}
@@ -1159,16 +1186,17 @@ function streamSection(){
         catch(e){return {r,err:true}}}));
       res.innerHTML="";
       data.forEach(({r,set,err})=>{
-        const t=r.title||r.name,y=((r.release_date||r.first_air_date)||"").slice(0,4),own=items.find(x=>nkey(x.title)===nkey(t));
-        res.appendChild(el("div",{class:"sres"},
+        const t=r.title||r.name,y=((r.release_date||r.first_air_date)||"").slice(0,4),ow=items.filter(x=>nkey(x.title)===nkey(t));
+        res.appendChild(el("div",{class:"sres"+(ow.length?" has "+ow[0].format:"")},
           r.poster_path?el("img",{src:TMG+"w92"+r.poster_path,alt:"",onerror:function(){this.replaceWith(el("div",{class:"ph"}))}}):el("div",{class:"ph"}),
-          el("div",{style:"min-width:0"},el("b",null,t+(y?" ("+y+")":"")),el("div",{class:"note",style:"margin:0"},(r.media_type==="tv"?"Série":"Film")+(own?" · dans ta collection ("+FMT[own.format]+")":"")),
+          el("div",{style:"min-width:0"},el("b",null,t+(y?" ("+y+")":"")),el("div",{class:"note",style:"margin:0"},(r.media_type==="tv"?"Série":"Film")+(ow.length?" · dans ta collection":"")),
+            ow.length?el("div",{class:"pl"},ow.map(x=>el("span",{class:"fc "+x.format},FMT[x.format]))):null,
             err?el("div",{class:"note",style:"margin-top:6px"},"Information indisponible."):set.length?el("div",{class:"pl"},set.map(n=>el("span",null,n))):el("div",{class:"note",style:"margin-top:6px"},"Pas inclus dans ces abonnements."))));
       });
     }catch(e){res.textContent="Recherche impossible (connexion ?)."}
   };
   inp.addEventListener("keydown",e=>{if(e.key==="Enter")go()});
-  return el("section",{class:"shelf"},el("div",{class:"shh"},el("h2",null,"Où le regarder ?")),el("div",{class:"bar",style:"margin:0"},inp,el("button",{class:"btn",type:"button",onclick:go},"Chercher")),res,
+  return el("section",{class:"shelf"},el("div",{class:"shh"},el("h2",null,"Où le regarder ?")),el("div",{class:"bar",style:"margin:0"},el("div",{class:"sw",style:"flex:1;min-width:0"},inp,xb),el("button",{class:"btn",type:"button",onclick:go},"Chercher")),res,
     el("p",{class:"note",style:"margin:8px 0 0"},"Inclus dans l'abonnement, en France : Netflix, Prime Video, Canal+, Apple TV+, Disney+. Les locations et achats ne sont pas comptés. Données JustWatch via TMDB."));
 }
 function renderMore(){
@@ -1284,7 +1312,7 @@ const SPRE=/^sp:(\d+):(\d+)$/;
 const spLeft=()=>{const s=new Set();items.forEach(i=>{if(SPRE.test(i.cover||""))s.add(i.cover)});return s};
 let spBusy=false;
 function spStatus(msg){
-  const e=$("spSt"),b=$("spBtn");if(!e)return;const n=spLeft().size;
+  const e=$("spSt"),b=$("spBtn");if(!e||!b)return;const n=spLeft().size;
   e.textContent=msg||(n?n+" jaquette"+(n>1?"s":"")+" dépendent encore des photos du dépôt GitHub.":"Toutes les jaquettes sont enregistrées dans l'appli. Tu peux supprimer les photos du dépôt GitHub.");
   b.hidden=!n||spBusy;
 }
@@ -1298,9 +1326,9 @@ async function freezeSprites(){
       if(!(n in sheets))sheets[n]=await new Promise(ok=>{const im=new Image();im.onload=()=>ok(im);im.onerror=()=>ok(null);im.src="s"+n+".jpg"});
       const im=sheets[n];if(!im){fail++;continue}
       try{
-        const cw=im.naturalWidth/10,ch=im.naturalHeight/10,col=(+p)%10,row=Math.floor(+p/10),w=Math.max(1,Math.min(220,Math.round(cw))),h=Math.max(1,Math.round(w*ch/cw)),c=document.createElement("canvas");
+        const cw=im.naturalWidth/10,ch=im.naturalHeight/10,col=(+p)%10,row=Math.floor(+p/10),w=Math.max(1,Math.min(180,Math.round(cw))),h=Math.max(1,Math.round(w*ch/cw)),c=document.createElement("canvas");
         c.width=w;c.height=h;c.getContext("2d").drawImage(im,col*cw,row*ch,cw,ch,0,0,w,h);
-        const d=c.toDataURL("image/jpeg",.72);if(d.length>200)res[u]=d;else fail++;
+        const d=c.toDataURL("image/jpeg",.7);if(d.length>200)res[u]=d;else fail++;
       }catch(e){fail++}
       await sleep(0);
     }
@@ -1310,14 +1338,43 @@ async function freezeSprites(){
   spBusy=false;
   spStatus(fail?spLeft().size+" jaquette"+(spLeft().size>1?"s":"")+" introuvable"+(spLeft().size>1?"s":"")+" (photos du dépôt manquantes). Les autres sont enregistrées.":"");
 }
-$("spBtn").onclick=freezeSprites;
-setTimeout(freezeSprites,1500);
 
 (function(){const lg=$("logo");let c="";try{c=localStorage.getItem("movy-logo")||""}catch(e){}
   if(c){lg.src=c;lg.style.display=""}
   else lg.addEventListener("load",()=>{try{const cv=document.createElement("canvas");cv.width=cv.height=96;cv.getContext("2d").drawImage(lg,0,0,96,96);localStorage.setItem("movy-logo",cv.toDataURL("image/png"))}catch(e){}},{once:true});
 })();
-const APP_VERSION="01/11/2026 · v7.5";
+/* ---------- Ajout d'une liste de films ---------- */
+const FMT_ALIAS=[[/4k|uhd|ultra/i,"uhd"],[/blu-?ray|^br$/i,"br"],[/dvd/i,"dvd"],[/grav/i,"grave"],[/mkv/i,"mkv"]];
+const isYearTok=x=>/^(18|19|20)\d{2}$/.test(x),fmtTok=x=>{const f=FMT_ALIAS.find(([re])=>re.test(x));return f?f[1]:""};
+function parseBulk(txt,defFmt){
+  const out=[];
+  txt.split(/\r?\n/).forEach(line=>{
+    line=line.trim();if(!line)return;
+    let parts=line.split(/[;\t|]/).map(x=>x.trim()).filter(Boolean);
+    if(parts.length===1&&line.includes(",")){const tk=line.split(",").map(x=>x.trim());const k=tk.findIndex((x,n)=>n>0&&(isYearTok(x)||fmtTok(x)));if(k>0)parts=[tk.slice(0,k).join(", "),...tk.slice(k).filter(Boolean)]}
+    let title=(parts[0]||"").replace(/^["'«\s]+|["'»\s]+$/g,""),year="",fmt=defFmt;
+    const m=title.match(/\s*\(((?:18|19|20)\d{2})\)\s*$/);if(m){year=m[1];title=title.slice(0,m.index).trim()}
+    parts.slice(1).forEach(x=>{x=x.replace(/^["'\s]+|["'\s]+$/g,"");if(isYearTok(x))year=x;else if(fmtTok(x))fmt=fmtTok(x)});
+    if(title.length<1||title.length>150)return;
+    out.push({title,year,format:fmt});
+  });
+  return out;
+}
+function bulkAdd(txt){
+  const st=$("bulkSt"),list=parseBulk(txt,$("bulkF").value);
+  if(!list.length){st.textContent="Aucun titre trouvé.";return}
+  const seen=new Set(items.map(x=>nkey(x.title)+"|"+x.format));let add=0,skip=0;const now=Date.now(),fresh=[];
+  list.forEach(t=>{const k=nkey(t.title)+"|"+t.format;if(seen.has(k)){skip++;return}seen.add(k);add++;
+    fresh.push({id:nid(),title:t.title,year:t.year,cover:"",overview:"",format:t.format,seen:false,rating:0,lists:[],u:now})});
+  items=[...fresh,...items];saveLocal();queueSync();render();
+  st.textContent=add+" ajouté"+(add>1?"s":"")+(skip?", "+skip+" ignoré"+(skip>1?"s":"")+" (déjà présent"+(skip>1?"s":"")+")":"")+". Les jaquettes et les fiches se chargent maintenant, laisse l'appli ouverte (quelques minutes).";
+  $("bulkT").value="";enrichAll();
+}
+$("bulkGo").onclick=()=>bulkAdd($("bulkT").value);
+$("bulkFile").onclick=()=>$("bulkIn").click();
+$("bulkIn").onchange=async e=>{const f=e.target.files[0];e.target.value="";if(!f)return;try{bulkAdd(await f.text())}catch(x){$("bulkSt").textContent="Fichier illisible."}};
+
+const APP_VERSION="01/11/2026 · v7.6";
 function fillSettings(){computeDups();fillStats();$("enrichSt").textContent=enrichText();fillRecent();$("verTxt").textContent="Version "+APP_VERSION;spStatus()}
 $("listD").addEventListener("close",()=>{if(curView==="more")renderMore();else if(curView==="home")render()});
 $("upd").onclick=async()=>{try{if(window.caches){for(const k of await caches.keys())await caches.delete(k)}const r=await fetch(location.pathname,{cache:"reload"});await r.text()}catch(e){}location.reload()};
@@ -1365,7 +1422,7 @@ function merge(rem){
   mergeLists(rem.lists);
 }
 async function sync(){
-  if(!cfg.tok||!cfg.gid||syncing)return;
+  if(!cfg.tok||!cfg.gid||syncing||!started)return;
   syncing=true;setSt("Synchronisation en cours…");
   try{
     merge(await pull());saveLocal();if(curFilm===null)render();
@@ -1385,7 +1442,7 @@ $("syncOn").onclick=async()=>{
 $("syncNow").onclick=sync;
 $("syncOff").onclick=()=>{cfg={};try{localStorage.removeItem(SK)}catch(e){}setSt("Synchronisation désactivée sur cet appareil. Tes disques restent ici.")};
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)sync()});
-if(cfg.tok&&cfg.gid){setSt("Synchronisation activée.");sync()}
+function startSync(){if(cfg.tok&&cfg.gid){setSt("Synchronisation activée.");sync()}}
 
 /* ---------- Export / import ---------- */
 function buildBackup(){
@@ -1432,8 +1489,12 @@ $("imp").onchange=async e=>{
     alert("Sauvegarde fusionnée : "+added+" ajouté"+(added>1?"s":"")+", "+updated+" mis à jour (plus récents dans la sauvegarde), "+kept+" conservé"+(kept>1?"s":"")+" tel"+(kept>1?"s":"")+" quel"+(kept>1?"s":"")+" (plus récents sur cet appareil, jaquettes comprises)"+(gone?", "+gone+" ignoré"+(gone>1?"s":"")+" (supprimés depuis)":"")+".");
   }catch(err){alert("Fichier illisible.")}
 };
-newQuote();route();
-setTimeout(enrichAll,2500);
+function startApp(){
+  if(started)return;started=true;
+  let n=0;items.forEach(i=>{if(stripHist(i)){i.u=Date.now();n++}});if(n)saveLocal();
+  newQuote();route();startSync();setTimeout(freezeSprites,1500);setTimeout(enrichAll,2500);
+}
+Promise.race([bootDB(),sleep(4000)]).then(startApp,startApp);
 </script>
 </body>
 </html>
