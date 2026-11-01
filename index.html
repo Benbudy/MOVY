@@ -97,6 +97,10 @@ dialog h2{margin:0 0 10px;font:700 1.15rem "Iowan Old Style",Georgia,serif}
 .picks{display:flex;gap:8px;overflow-x:auto}
 .brand{display:flex;gap:10px;align-items:center}
 .brand img{width:44px;height:44px;border-radius:10px;flex:none;display:block}
+.sres{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.sres img,.sres .ph{width:46px;height:69px;object-fit:cover;border-radius:4px;flex:none;background:var(--line)}
+.sres .pl{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.sres .pl span{background:var(--ink);color:var(--bg);border-radius:99px;padding:3px 9px;font:700 .74rem system-ui}
 .picks img{height:120px;border-radius:6px;border:3px solid transparent;cursor:pointer;flex:none}
 .picks img.on{border-color:var(--acc)}
 .pk{flex:none;width:84px;height:120px;border:2px dashed var(--line);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;font:600 .72rem/1.2 system-ui;cursor:pointer;background:var(--card);color:var(--ink);padding:4px}
@@ -1137,9 +1141,40 @@ function listsSection(){
   if(alive().length)chips.appendChild(el("button",{class:"chip link",onclick:()=>openLists()},"✎ Renommer / supprimer"));
   return el("section",{class:"shelf"},el("div",{class:"shh"},el("h2",null,"Mes listes")),chips,el("p",{class:"note",style:"margin:8px 0 0"},"Pour ranger un film dans une liste, ouvre sa fiche."));
 }
+/* ---------- Où le regarder ? (streaming inclus dans l'abonnement, France) ---------- */
+const PLAT=[[/netflix/i,"Netflix"],[/prime video|amazon prime/i,"Prime Video"],[/canal\+|canal plus/i,"Canal+"],[/apple tv/i,"Apple TV+"],[/disney/i,"Disney+"]];
+function streamSection(){
+  const inp=el("input",{type:"search",placeholder:"Titre d'un film ou d'une série…",autocomplete:"off",autocapitalize:"off","aria-label":"Chercher où regarder un titre"}),res=el("div",{style:"margin-top:8px"});
+  const go=async()=>{
+    const q=inp.value.trim();if(q.length<2){inp.focus();return}
+    if(!tmKey()){res.textContent="Ajoute ta clé TMDB dans Réglages pour utiliser cette recherche.";return}
+    res.textContent="Recherche…";
+    try{
+      const sr=await tm("/search/multi",{query:q,include_adult:"false"});
+      const rows=(sr.results||[]).filter(r=>r.media_type==="movie"||r.media_type==="tv").slice(0,6);
+      if(!rows.length){res.textContent="Aucun résultat.";return}
+      const data=await Promise.all(rows.map(async r=>{
+        try{const w=await tm("/"+r.media_type+"/"+r.id+"/watch/providers",{}),fr=((w.results||{}).FR||{}).flatrate||[],set=new Set();
+          fr.forEach(p=>{const m=PLAT.find(([re])=>re.test(p.provider_name||""));if(m)set.add(m[1])});return {r,set:[...set]}}
+        catch(e){return {r,err:true}}}));
+      res.innerHTML="";
+      data.forEach(({r,set,err})=>{
+        const t=r.title||r.name,y=((r.release_date||r.first_air_date)||"").slice(0,4),own=items.find(x=>nkey(x.title)===nkey(t));
+        res.appendChild(el("div",{class:"sres"},
+          r.poster_path?el("img",{src:TMG+"w92"+r.poster_path,alt:"",onerror:function(){this.replaceWith(el("div",{class:"ph"}))}}):el("div",{class:"ph"}),
+          el("div",{style:"min-width:0"},el("b",null,t+(y?" ("+y+")":"")),el("div",{class:"note",style:"margin:0"},(r.media_type==="tv"?"Série":"Film")+(own?" · dans ta collection ("+FMT[own.format]+")":"")),
+            err?el("div",{class:"note",style:"margin-top:6px"},"Information indisponible."):set.length?el("div",{class:"pl"},set.map(n=>el("span",null,n))):el("div",{class:"note",style:"margin-top:6px"},"Pas inclus dans ces abonnements."))));
+      });
+    }catch(e){res.textContent="Recherche impossible (connexion ?)."}
+  };
+  inp.addEventListener("keydown",e=>{if(e.key==="Enter")go()});
+  return el("section",{class:"shelf"},el("div",{class:"shh"},el("h2",null,"Où le regarder ?")),el("div",{class:"bar",style:"margin:0"},inp,el("button",{class:"btn",type:"button",onclick:go},"Chercher")),res,
+    el("p",{class:"note",style:"margin:8px 0 0"},"Inclus dans l'abonnement, en France : Netflix, Prime Video, Canal+, Apple TV+, Disney+. Les locations et achats ne sont pas comptés. Données JustWatch via TMDB."));
+}
 function renderMore(){
   const box=$("moreBody");box.innerHTML="";computeDups();
-  if(!items.length){box.appendChild(el("p",{class:"note"},"Ajoute quelques disques : tes étagères (listes, séries, dessins animés…) apparaîtront ici."));return}
+  if(!items.length){box.appendChild(streamSection());box.appendChild(el("p",{class:"note"},"Ajoute quelques disques : tes étagères (listes, séries, dessins animés…) apparaîtront ici."));return}
+  box.appendChild(streamSection());
   box.appendChild(tonight());
   box.appendChild(listsSection());
   const byTitle=(a,b)=>a.title.localeCompare(b.title,"fr");
@@ -1282,7 +1317,7 @@ setTimeout(freezeSprites,1500);
   if(c){lg.src=c;lg.style.display=""}
   else lg.addEventListener("load",()=>{try{const cv=document.createElement("canvas");cv.width=cv.height=96;cv.getContext("2d").drawImage(lg,0,0,96,96);localStorage.setItem("movy-logo",cv.toDataURL("image/png"))}catch(e){}},{once:true});
 })();
-const APP_VERSION="01/11/2026 · v7.4";
+const APP_VERSION="01/11/2026 · v7.5";
 function fillSettings(){computeDups();fillStats();$("enrichSt").textContent=enrichText();fillRecent();$("verTxt").textContent="Version "+APP_VERSION;spStatus()}
 $("listD").addEventListener("close",()=>{if(curView==="more")renderMore();else if(curView==="home")render()});
 $("upd").onclick=async()=>{try{if(window.caches){for(const k of await caches.keys())await caches.delete(k)}const r=await fetch(location.pathname,{cache:"reload"});await r.text()}catch(e){}location.reload()};
