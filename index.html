@@ -169,8 +169,7 @@ details.rc summary{cursor:pointer;font-weight:600}
 #az.show{opacity:1}
 #az span{font:700 .74rem/1 system-ui;color:var(--ink);padding:0 6px}
 #az span.off{opacity:.25}
-#home.azp{padding-right:36px}
-.lh{grid-column:1/-1;font:700 1.15rem "Iowan Old Style",Georgia,serif;padding:8px 2px 2px;margin-top:4px;border-bottom:1px solid var(--line);color:var(--ink)}
+#home.azp #grid{padding-right:34px}
 .stcar{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 -12px;padding:0 12px 4px}
 .stcar::-webkit-scrollbar{display:none}
 .stc{flex:none;width:82%;max-width:340px;min-height:210px;scroll-snap-align:start;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
@@ -1146,7 +1145,7 @@ function gItem(i){
   const m=[FMT[i.format],ow?"S"+fmtSeasons(ow):"",yr(i)||"",imdbN(i)?"IMDb "+i.info.imdb:"",i.genres||"",dupIds.has(i.id)?"Doublon":""].filter(Boolean).join(" · ");
   return el("button",{"data-l":letterOf(i.title),class:"li "+i.format+(i.seen?" seen":""),onclick:()=>openFilm(i.id)},cv,el("div",{class:"tx"},el("div",{class:"t"},i.title),el("div",{class:"m"},m)));
 }
-function gMore(n){const end=Math.min(gShown.length,gPos+n),fr=document.createDocumentFragment(),hd=["az","za"].includes($("sort").value);for(;gPos<end;gPos++){const L=gL[gPos];if(hd&&L!==gLast){gLast=L;const h=el("div",{class:"lh","aria-hidden":"true"},L);gHeads.set(L,h);fr.appendChild(h)}fr.appendChild(gItem(gShown[gPos]))}$("grid").appendChild(fr)}
+function gMore(n){const end=Math.min(gShown.length,gPos+n),fr=document.createDocumentFragment();for(;gPos<end;gPos++)fr.appendChild(gItem(gShown[gPos]));$("grid").appendChild(fr)}
 const gIO=("IntersectionObserver" in window)?new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)&&gPos<gShown.length){gMore(120);gIO.unobserve($("gridEnd"));gIO.observe($("gridEnd"))}},{rootMargin:"900px 0px"}):null;
 function render(){
   computeDups();
@@ -1201,9 +1200,11 @@ function letterOf(t){const c=nrm(t).replace(/[^a-z0-9]/g,"").charAt(0);return /[
 function azUpdate(){
   const ok=!$("home").hidden&&["az","za"].includes($("sort").value)&&gShown.length>=18,have=new Set(gL);
   [...azBox.children].forEach(x=>x.classList.toggle("off",!have.has(x.dataset.l)));
-  azBox.classList.toggle("on",ok);$("home").classList.toggle("azp",ok);azBox.dataset.ok=ok?"1":"";if(!ok)azBox.classList.remove("show");
+  azBox.classList.toggle("on",ok);azPos();$("home").classList.toggle("azp",ok);azBox.dataset.ok=ok?"1":"";if(!ok)azBox.classList.remove("show");
 }
-window.addEventListener("scroll",()=>{if(azBox.dataset.ok!=="1")return;azBox.classList.add("show");clearTimeout(azT);azT=setTimeout(()=>{if(!azOn)azBox.classList.remove("show")},1800)},{passive:true});
+function azPos(){const f=document.querySelector("#home .filters");if(!f||$("home").hidden)return;const h=parseInt(getComputedStyle(document.documentElement).getPropertyValue("--topH"))||0;azBox.style.top=Math.max(h+8,Math.round(f.getBoundingClientRect().bottom)+8)+"px"}
+window.addEventListener("resize",azPos);
+window.addEventListener("scroll",()=>{if(azBox.dataset.ok!=="1")return;azPos();azBox.classList.add("show");clearTimeout(azT);azT=setTimeout(()=>{if(!azOn)azBox.classList.remove("show")},1800)},{passive:true});
 function azJump(y){
   const r=azBox.getBoundingClientRect(),idx=Math.floor(Math.min(.999,Math.max(0,(y-r.top)/r.height))*AZL.length);
   let ti=gL.indexOf(AZL[idx]);
@@ -1560,7 +1561,7 @@ $("expCsv").onclick=()=>{
   catch(e){alert("Export impossible.")}
 };
 
-const APP_VERSION="04/11/2026 · v7.9";
+const APP_VERSION="04/11/2026 · v7.10";
 function fillSettings(){computeDups();fillStats();$("enrichSt").textContent=enrichText();fillRecent();$("verTxt").textContent="Version "+APP_VERSION;spStatus()}
 $("listD").addEventListener("close",()=>{if(curView==="more")renderMore();else if(curView==="home")render()});
 $("upd").onclick=async()=>{try{if(window.caches){for(const k of await caches.keys())await caches.delete(k)}const r=await fetch(location.pathname,{cache:"reload"});await r.text()}catch(e){}location.reload()};
